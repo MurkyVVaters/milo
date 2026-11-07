@@ -1,5 +1,6 @@
+<!-- Modified for Otto. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1147" height="1144" viewBox="53 54 1147 1144" role="img" aria-labelledby="title desc">
-  <title id="title">Sim Agentation icon</title>
+  <title id="title">Otto icon</title>
   <desc id="desc">A violet selection frame and a metallic fountain pen on a rounded light tile. Clean vector reconstruction with smooth gradients, crisp contours, and a transparent background.</desc>
   <defs>
     <path id="tile" d="M367 54H885C1096 54 1200 158 1200 368V885C1200 1095 1095 1198 884 1198H368C158 1198 53 1095 53 885V368C53 158 158 54 367 54Z"/>

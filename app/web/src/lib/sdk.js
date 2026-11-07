@@ -1,4 +1,5 @@
-// Targets from SimAgentationPlus, the optional in-app SDK. It reports the
+// Modified for Otto.
+// Targets from OttoPlus, the optional in-app SDK. It reports the
 // real view/layer tree plus `.simTag()` views with their source location.
 
 const SNAP = 2; // pt; a tag and the layer it paints count as the same box within this

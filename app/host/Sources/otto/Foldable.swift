@@ -1,3 +1,4 @@
+// Modified for Otto.
 import Foundation
 import SimBridge
 
@@ -160,7 +161,7 @@ final class Foldable: @unchecked Sendable {
             self.leash = leash.fileHandleForWriting
         }
         do { try process.run() } catch {
-            FileHandle.standardError.write(Data("sim-agentation: hinge: devicectl didn't start: \(error)\n".utf8))
+            FileHandle.standardError.write(Data("otto: hinge: devicectl didn't start: \(error)\n".utf8))
         }
     }
 

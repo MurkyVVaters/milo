@@ -1,3 +1,4 @@
+// Modified for Otto.
 import Foundation
 
 /// Minimal MCP stdio server. Every tool is a thin
@@ -114,12 +115,12 @@ final class MCPServer: @unchecked Sendable {
                     // Echo the client's version when we support it, otherwise offer our newest.
                     "protocolVersion": .string(version),
                     "capabilities": .object(capabilities),
-                    "serverInfo": .object(JSONObject(["name": .string("sim-agentation"), "version": .string(Config.version)])),
+                    "serverInfo": .object(JSONObject(["name": .string("otto"), "version": .string(Config.version)])),
                     "instructions": .string(
                         "The user annotates a running iOS simulator in the browser (http://localhost:\(port)). "
                             + "Fetch annotations with sim_get_pending, Read the screenshot paths to see the UI, find the SwiftUI/UIKit code, fix it, then sim_resolve."
                             + (claude
-                                ? " With channels on, each annotation the user sends also arrives on its own as a <channel source=\"sim-agentation\" annotation_id=\"…\"> event: "
+                                ? " With channels on, each annotation the user sends also arrives on its own as a <channel source=\"otto\" annotation_id=\"…\"> event: "
                                     + "call sim_acknowledge with that id before starting, and if it says another session has it, leave it."
                                 : "")
                     ),
@@ -339,7 +340,7 @@ final class MCPServer: @unchecked Sendable {
         return json
     }
 
-    /// Starts `sim-agentation serve` from this executable if nothing answers.
+    /// Starts `otto serve` from this executable if nothing answers.
     private func ensureServer() async {
         guard let probe = URL(string: "\(api)/api/annotations?status=pending"), let list = URL(string: "\(api)/api/annotations") else { return }
         if (try? await probeSession.data(from: probe)) != nil { return }
@@ -378,7 +379,7 @@ final class MCPServer: @unchecked Sendable {
         var pid: pid_t = 0
         let status = posix_spawn(&pid, path, &actions, &attributes, argv, environ)
         if status != 0 {
-            FileHandle.standardError.write(Data("sim-agentation: could not start the server (\(String(cString: strerror(status))))\n".utf8))
+            FileHandle.standardError.write(Data("otto: could not start the server (\(String(cString: strerror(status))))\n".utf8))
         }
     }
 }

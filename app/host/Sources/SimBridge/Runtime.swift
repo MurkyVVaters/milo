@@ -1,3 +1,4 @@
+// Modified for Otto.
 // Adapted from baguette (https://github.com/tddworks/baguette),
 // Copyright 2026 tddworks, licensed under the Apache License 2.0 (see
 // LICENSE-baguette). Changes: merged the framework loading, developer
@@ -81,7 +82,7 @@ func dlerrorString() -> String {
 
 /// Diagnostics go to stderr: stdout may be an MCP stdio channel.
 func log(_ message: String) {
-    FileHandle.standardError.write(Data("[sim-agentation] \(message)\n".utf8))
+    FileHandle.standardError.write(Data("[otto] \(message)\n".utf8))
 }
 
 // MARK: - ObjC message helpers for selectors with C-typed signatures

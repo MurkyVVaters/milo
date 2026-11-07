@@ -1,3 +1,4 @@
+// Modified for Otto.
 // Adapted from baguette (https://github.com/tddworks/baguette),
 // Copyright 2026 tddworks, licensed under the Apache License 2.0 (see
 // LICENSE-baguette). Changes: merged AXPTranslatorAccessibility, AXNode,
@@ -254,7 +255,7 @@ private final class TokenDispatcher: NSObject, @unchecked Sendable {
             box.value = response
             group.leave()
         }
-        unsafeBitCast(imp, to: Fn.self)(device, sel, request, DispatchQueue(label: "sim-agentation.ax"), done as Any)
+        unsafeBitCast(imp, to: Fn.self)(device, sel, request, DispatchQueue(label: "otto.ax"), done as Any)
         guard group.wait(timeout: .now() + timeout) == .success else {
             log("accessibility request timed out after \(timeout)s")
             return nil

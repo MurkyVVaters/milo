@@ -1,17 +1,18 @@
+// Modified for Otto.
 #if DEBUG
 import Foundation
 import Network
 import os
 
 /// A tiny HTTP server on 127.0.0.1. The simulator shares the Mac's
-/// loopback, so sim-agentation on the host can reach it directly.
+/// loopback, so otto on the host can reach it directly.
 ///
 ///     GET /snapshot  →  views, layers and tags as JSON
 final class InspectorServer: @unchecked Sendable {
     static let shared = InspectorServer()
 
-    private let queue = DispatchQueue(label: "SimAgentationPlus.server")
-    private let log = Logger(subsystem: "SimAgentationPlus", category: "server")
+    private let queue = DispatchQueue(label: "OttoPlus.server")
+    private let log = Logger(subsystem: "OttoPlus", category: "server")
     private var listener: NWListener? // only touched on the main actor
 
     @MainActor

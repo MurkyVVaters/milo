@@ -1,21 +1,22 @@
+<!-- Modified for Otto. -->
 # Setup and troubleshooting
 
 ## Connecting the tools
 
-The MCP server is the `sim-agentation` binary, run with `mcp`. It speaks stdio and starts the web server on port 38470 if it isn't running. The SimAgentation plugin for Claude Code, Codex or Cursor configures the server and downloads the binary the first time it starts; Homebrew installs it too (`brew install lcandy2/tap/sim-agentation`). Without the plugin:
+The MCP server is the `otto` binary, run with `mcp`. It speaks stdio and starts the web server on port 38470 if it isn't running. Build it from this repository with `pnpm install --frozen-lockfile` and `pnpm build`. Configure its absolute path directly, or set `OTTO_BIN` to that path when using a plugin. Automatic plugin downloads require a matching release in this repository.
 
 ```sh
-claude mcp add sim-agentation -- sim-agentation mcp
-codex mcp add sim-agentation -- sim-agentation mcp
+claude mcp add otto -- /absolute/path/to/otto/app/host/.build/debug/otto mcp
+codex mcp add otto -- /absolute/path/to/otto/app/host/.build/debug/otto mcp
 ```
 
-A source build's binary is `app/host/.build/debug/sim-agentation` in the SimAgentation repository.
+A source build's binary is `app/host/.build/debug/otto` in the Otto repository.
 
 To have each annotation arrive in a Claude Code session as the user sends it, the session is started or resumed with the server as a channel:
 
 ```sh
-claude --dangerously-load-development-channels server:sim-agentation
-claude --resume <session> --dangerously-load-development-channels server:sim-agentation
+claude --dangerously-load-development-channels server:otto
+claude --resume <session> --dangerously-load-development-channels server:otto
 ```
 
 Without the flag, nothing is pushed and the tools work as before: use `sim_watch` to wait for annotations.
@@ -27,14 +28,14 @@ Adding an MCP server changes the user's configuration, so suggest the command an
 | Symptom | What it means |
 |---|---|
 | No `sim_*` tools | The MCP server isn't configured for this client, or failed to start. The plugin's server says "couldn't be downloaded, and none is installed" when it was offline on first start and no copy is installed. |
-| "Unable to connect" | The web server isn't up and couldn't be started. The user can run `pnpm start` in the SimAgentation repository and open http://localhost:38470. |
+| "Unable to connect" | The web server isn't up and couldn't be started. The user can run `pnpm start` in the Otto repository and open http://localhost:38470. |
 | "another agent session is already working on this annotation" | Another session acknowledged it first. Leave it. |
 | `sim_watch` returns "Nothing new yet" | It timed out (about 100 seconds). Call it again to keep waiting. |
-| An annotation has no **Source** line | The app doesn't run the SimAgentationPlus SDK. Search by labels; if the user wants exact source lines, the `sim-agentation-sdk` skill adds the SDK. |
+| An annotation has no **Source** line | The app doesn't run the OttoPlus SDK. Search by labels; if the user wants exact source lines, the `otto-sdk` skill adds the SDK. |
 
 ## Without MCP
 
-The web server has the same data over HTTP, on `http://localhost:38470` unless `SIM_AGENTATION_PORT` says otherwise:
+The web server has the same data over HTTP, on `http://localhost:38470` unless `OTTO_PORT` says otherwise:
 
 ```sh
 curl -s 'http://localhost:38470/api/annotations?status=pending'      # JSON list

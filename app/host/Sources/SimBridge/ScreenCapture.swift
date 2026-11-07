@@ -1,3 +1,4 @@
+// Modified for Otto.
 // Adapted from baguette (https://github.com/tddworks/baguette),
 // Copyright 2026 tddworks, licensed under the Apache License 2.0 (see
 // LICENSE-baguette). Changes: phone screens only (the largest framebuffer
@@ -25,7 +26,7 @@ public enum ScreenError: Error, CustomStringConvertible {
 /// capture is queued at a time, so a fast compositor degrades gracefully.
 public final class ScreenCapture: @unchecked Sendable {
     private let udid: String
-    private let queue = DispatchQueue(label: "sim-agentation.screen", qos: .userInteractive)
+    private let queue = DispatchQueue(label: "otto.screen", qos: .userInteractive)
     private var descriptors: [NSObject] = []
     private var callbacks: [ObjectIdentifier: NSUUID] = [:]
     private var onFrame: ((IOSurface, IOSurface?) -> Void)?

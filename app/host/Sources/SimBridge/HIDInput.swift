@@ -1,3 +1,4 @@
+// Modified for Otto.
 // Adapted from baguette (https://github.com/tddworks/baguette),
 // Copyright 2026 tddworks, licensed under the Apache License 2.0 (see
 // LICENSE-baguette). Changes: merged IndigoHIDInput and
@@ -226,7 +227,7 @@ public final class HIDInput: @unchecked Sendable {
         return c
     }
 
-    private static let completionQueue = DispatchQueue(label: "sim-agentation.hid.completion")
+    private static let completionQueue = DispatchQueue(label: "otto.hid.completion")
 
     /// Sends one Indigo message and waits for SimulatorKit to finish sending
     /// it, as baguette's IndigoHIDMessage.send does. Fire-and-forget (no

@@ -1,3 +1,4 @@
+// Modified for Otto.
 import Foundation
 import SimBridge
 
@@ -199,7 +200,7 @@ final class AppServer: @unchecked Sendable {
                 return .respond(Self.json(JSONObject(["ok": .bool(true)])))
             }
 
-            // SimAgentationPlus runs inside the app; the simulator shares our loopback.
+            // OttoPlus runs inside the app; the simulator shares our loopback.
             // Hot reload: the dev server `pnpm dev` runs leaves a token and its
             // process id beside the build. While that process lives the page
             // gets the token, and loads from the dev server only if it answers

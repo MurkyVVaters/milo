@@ -1,3 +1,4 @@
+// Modified for Otto.
 // App state and behaviour. `ui` is reactive and drives the components;
 // `rt` holds what changes every frame or pointer move (stream, frozen frame,
 // hover, drag) and is never rendered directly.
@@ -14,10 +15,10 @@ import { pieceMaps, locate, stageBox, facing, labelMatrix } from './screen3d.js'
 
 export const storage = {
   get(k) {
-    try { return localStorage.getItem(`sim-agentation:${k}`); } catch { return null; }
+    try { return localStorage.getItem(`otto:${k}`); } catch { return null; }
   },
   set(k, v) {
-    try { localStorage.setItem(`sim-agentation:${k}`, v); } catch {}
+    try { localStorage.setItem(`otto:${k}`, v); } catch {}
   },
 };
 
@@ -123,7 +124,7 @@ const rt = {
 };
 
 // For poking at from the devtools console.
-if (typeof window !== 'undefined') window.simAgentation = { ui, rt, hover: () => rt.hover, partsWithin };
+if (typeof window !== 'undefined') window.otto = { ui, rt, hover: () => rt.hover, partsWithin };
 
 // ---------- status ----------
 

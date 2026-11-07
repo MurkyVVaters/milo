@@ -1,4 +1,5 @@
 // swift-tools-version: 6.0
+// Modified for Otto.
 
 import PackageDescription
 
@@ -6,10 +7,10 @@ import PackageDescription
 // frameworks loaded at runtime with dlopen, and HTTP/WebSocket is built on
 // BSD sockets.
 let package = Package(
-    name: "SimAgentationHost",
+    name: "OttoHost",
     platforms: [.macOS(.v15)],
     products: [
-        .executable(name: "sim-agentation", targets: ["sim-agentation"]),
+        .executable(name: "otto", targets: ["otto"]),
         .library(name: "SimBridge", targets: ["SimBridge"]),
     ],
     targets: [
@@ -26,7 +27,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "sim-agentation",
+            name: "otto",
             dependencies: ["SimBridge"]
         ),
     ]

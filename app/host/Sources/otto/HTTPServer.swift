@@ -1,3 +1,4 @@
+// Modified for Otto.
 import CryptoKit
 import Foundation
 
@@ -40,7 +41,7 @@ final class HTTPServer: @unchecked Sendable {
 
     private let port: UInt16
     private let handler: Handler
-    private let queue = DispatchQueue(label: "sim-agentation.http")
+    private let queue = DispatchQueue(label: "otto.http")
     private var listener: Listener?
 
     init(port: UInt16, handler: @escaping Handler) throws {

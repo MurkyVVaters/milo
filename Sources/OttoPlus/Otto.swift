@@ -1,10 +1,11 @@
+// Modified for Otto.
 import SwiftUI
 
-/// Debug-only bridge between a running app and sim-agentation.
+/// Debug-only bridge between a running app and otto.
 ///
-/// Call `.simAgentation()` on your root view and `.simTag()` on the views
+/// Call `.otto()` on your root view and `.simTag()` on the views
 /// you want to be selectable by name. In Release builds both are no-ops.
-public enum SimAgentation {
+public enum Otto {
     public static let defaultPort: UInt16 = 38471
 
     /// Starts the local inspector server. Safe to call more than once.
@@ -21,16 +22,16 @@ public enum SimAgentation {
 }
 
 public extension View {
-    /// Starts the sim-agentation inspector when this view appears (Debug only).
-    func simAgentation(port: UInt16? = nil) -> some View {
+    /// Starts the otto inspector when this view appears (Debug only).
+    func otto(port: UInt16? = nil) -> some View {
         #if DEBUG
-        onAppear { SimAgentation.start(port: port) }
+        onAppear { Otto.start(port: port) }
         #else
         self
         #endif
     }
 
-    /// Makes this view selectable in sim-agentation under its type name,
+    /// Makes this view selectable in otto under its type name,
     /// with the file and line it was created on (Debug only).
     func simTag(_ name: String? = nil, fileID: String = #fileID, line: Int = #line) -> some View {
         #if DEBUG
@@ -51,7 +52,7 @@ func typeName(_ type: Any.Type) -> String {
 // UIKit's views: iOS and iPadOS (Mac Catalyst too), tvOS and visionOS.
 #if os(iOS) || os(tvOS) || os(visionOS)
 public extension UIView {
-    /// Makes this view selectable in sim-agentation under its class name,
+    /// Makes this view selectable in otto under its class name,
     /// with the file and line where it was tagged (Debug only).
     @MainActor
     @discardableResult

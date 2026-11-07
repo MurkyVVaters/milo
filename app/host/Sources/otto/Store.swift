@@ -1,3 +1,4 @@
+// Modified for Otto.
 import Foundation
 
 /// Annotations in `<home>/annotations.json` (formatted like
@@ -41,7 +42,7 @@ final class Store: @unchecked Sendable {
             let aside = file.hasSuffix(".json") ? String(file.dropLast(5)) + ".corrupt-\(ms).json" : file
             rename(file, aside)
             let message = AppServer.message(error)
-            FileHandle.standardError.write(Data("sim-agentation: could not read \(file) (\(message)); moved it to \(aside)\n".utf8))
+            FileHandle.standardError.write(Data("otto: could not read \(file) (\(message)); moved it to \(aside)\n".utf8))
             return []
         }
     }

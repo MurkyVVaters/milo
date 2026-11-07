@@ -1,13 +1,13 @@
 {
-  "name": "sim-agentation",
+  "name": "otto",
   "version": "0.2.2",
-  "description": "Annotate a running iOS simulator in the browser and hand each note to your agent: sim-agentation itself, its MCP server, and skills for working through annotations and adding the SimAgentationPlus SDK.",
+  "description": "Annotate a running iOS simulator in the browser and hand each note to your agent: otto itself, its MCP server, and skills for working through annotations and adding the OttoPlus SDK.",
   "author": {
-    "name": "lcandy2",
-    "url": "https://github.com/lcandy2"
+    "name": "MurkyVVaters",
+    "url": "https://github.com/MurkyVVaters"
   },
-  "homepage": "https://github.com/lcandy2/sim-agentation",
-  "repository": "https://github.com/lcandy2/sim-agentation",
+  "homepage": "https://github.com/MurkyVVaters/otto",
+  "repository": "https://github.com/MurkyVVaters/otto",
   "license": "Apache-2.0",
   "keywords": [
     "ios",
@@ -18,7 +18,7 @@
     "uikit",
     "mcp"
   ],
-  "displayName": "SimAgentation",
+  "displayName": "Otto",
   "logo": "./app/web/public/icon.svg",
   "skills": "./skills/",
   "mcpServers": "./.cursor-plugin/mcp.json"

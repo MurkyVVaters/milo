@@ -1,3 +1,4 @@
+// Modified for Otto.
 import Foundation
 
 /// Settings from the environment.
@@ -12,28 +13,28 @@ enum Config {
         return value
     }
 
-    /// SIM_AGENTATION_PORT, default 38470.
+    /// OTTO_PORT, default 38470.
     static let defaultPort: UInt16 = {
-        guard let value = env("SIM_AGENTATION_PORT") else { return 38470 }
+        guard let value = env("OTTO_PORT") else { return 38470 }
         let number = JS.number(value)
         guard number.isFinite, number >= 0, number <= 65535, number == number.rounded() else { return 38470 }
         return UInt16(number)
     }()
 
-    /// SIM_AGENTATION_HOME, default sim-agentation in the user's temporary
+    /// OTTO_HOME, default otto in the user's temporary
     /// directory: annotations and their screenshots. They're a handoff to an
     /// agent, kept through a restart of the host but not of the Mac.
-    static let home: String = env("SIM_AGENTATION_HOME") ?? Path.join(NSTemporaryDirectory(), "sim-agentation")
+    static let home: String = env("OTTO_HOME") ?? Path.join(NSTemporaryDirectory(), "otto")
 
     /// Rendered device chrome, which can always be made again: in the user's
     /// Caches folder, where macOS may clear it.
     static let cacheDirectory: String = Path.join(
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.path ?? Path.join(homeDirectory, "Library/Caches"),
-        "sim-agentation"
+        "otto"
     )
 
-    /// SimAgentationPlus, the optional in-app SDK.
-    static let sdkURL: String = env("SIM_AGENTATION_SDK_URL") ?? "http://127.0.0.1:38471"
+    /// OttoPlus, the optional in-app SDK.
+    static let sdkURL: String = env("OTTO_SDK_URL") ?? "http://127.0.0.1:38471"
 
     static var homeDirectory: String { env("HOME") ?? NSHomeDirectory() }
 
@@ -43,12 +44,12 @@ enum Config {
         return URL(fileURLWithPath: path).resolvingSymlinksInPath().path
     }
 
-    /// The web UI's source: SIM_AGENTATION_WEB, else the `web/` directory
+    /// The web UI's source: OTTO_WEB, else the `web/` directory
     /// found by walking up from this executable (host/.build/debug/… sits
     /// inside the repo), else from the working directory. The server serves
     /// its Vite build, `web/dist`.
     static let webDirectory: String? = {
-        if let web = env("SIM_AGENTATION_WEB") { return web }
+        if let web = env("OTTO_WEB") { return web }
         let fm = FileManager.default
         for start in [(executablePath as NSString).deletingLastPathComponent, fm.currentDirectoryPath] {
             var dir = start

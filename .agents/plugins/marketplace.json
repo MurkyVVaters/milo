@@ -1,11 +1,11 @@
 {
-  "name": "sim-agentation",
+  "name": "otto",
   "interface": {
-    "displayName": "SimAgentation"
+    "displayName": "Otto"
   },
   "plugins": [
     {
-      "name": "sim-agentation",
+      "name": "otto",
       "source": {
         "source": "local",
         "path": "./"
