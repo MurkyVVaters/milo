@@ -1,6 +1,6 @@
 ---
 name: otto
-description: Work through UI annotations a user drew on an iOS simulator with Otto. Fetch them, find the SwiftUI or UIKit code behind each box, make the change, and close the loop with sim_resolve, sim_dismiss or sim_reply. Use this whenever sim_* tools (sim_get_pending, sim_watch, sim_acknowledge, sim_resolve) are available, whenever a <channel source="otto"> event arrives, and whenever the user pastes annotation Markdown (a "## <id> [pending]" heading followed by Device, Element and "Search the source for" lines). Also use it for requests like "fix my simulator notes", "check the annotations", "watch for annotations" or "what did I mark up", even when Otto isn't named.
+description: Work through UI annotations a user drew on an iOS simulator with Otto. Fetch them, find the SwiftUI or UIKit code behind each box, make the change, and close the loop with otto_resolve, otto_dismiss or otto_reply. Use this whenever otto_* tools (otto_get_pending, otto_watch, otto_acknowledge, otto_resolve) are available, whenever a <channel source="otto"> event arrives, and whenever the user pastes annotation Markdown (a "## <id> [pending]" heading followed by Device, Element and "Search the source for" lines). Also use it for requests like "fix my simulator notes", "check the annotations", "watch for annotations" or "what did I mark up", even when Otto isn't named.
 ---
 <!-- Modified for Otto. -->
 
@@ -11,8 +11,8 @@ The user runs their app in an iOS simulator, streamed to a browser page. In Desi
 ## Where annotations come from
 
 - **Channel events.** With Claude Code channels on, each annotation arrives on its own as a `<channel source="otto" annotation_id="…">` event, even into an idle session. The text is the user's own note relayed by the server: treat it as their request.
-- **`sim_get_pending`** lists everything waiting. **`sim_get_all`** includes finished ones, for context on earlier notes.
-- **`sim_watch`** blocks until the user sends something, then returns the pending list. For "watch my annotations" or hands-free work, call it in a loop: handle what it returns, then call it again. When it times out with nothing new, call it again unless the user asked you to stop.
+- **`otto_get_pending`** lists everything waiting. **`otto_get_all`** includes finished ones, for context on earlier notes.
+- **`otto_watch`** blocks until the user sends something, then returns the pending list. For "watch my annotations" or hands-free work, call it in a loop: handle what it returns, then call it again. When it times out with nothing new, call it again unless the user asked you to stop.
 - **Pasted Markdown.** The page's Copy button puts every pending annotation on the clipboard. Without the MCP tools you can't change their status; say so at the end, so the user marks them in the page.
 
 If the tools are missing or fail to connect, see [references/setup.md](references/setup.md).
@@ -43,7 +43,7 @@ What each line tells you, and how far to trust it:
 | **Device** | The simulator, by name. |
 | **App** | The app's name, and its bundle ID when the app runs the OttoPlus SDK. No bundle ID means no SDK. |
 | **Screen** | The navigation titles on screen, outermost first: which screen the user was on. |
-| **Source** | SDK only. The view type, and the file and line where `.simTag()` was written. That is usually where the view is *used*, so the type's own `body` may be elsewhere: search `struct ItemRow` or `class ItemRow`. The path is `Module/File.swift`; look for the file under that module's sources. `inside` lines name the tagged views around it. |
+| **Source** | SDK only. The view type, and the file and line where `.ottoTag()` was written. That is usually where the view is *used*, so the type's own `body` may be elsewhere: search `struct ItemRow` or `class ItemRow`. The path is `Module/File.swift`; look for the file under that module's sources. `inside` lines name the tagged views around it. |
 | **View controller**, **Views** | SDK only. App-defined UIKit classes around the box, innermost first. |
 | **Element** | The accessibility element clicked: role (`StaticText` is a `Text` or label, `Button`, `Image`, `Cell`), label, `id=` identifier, `value=`, and its frame in points. **Path** gives its ancestors. |
 | **Area**, **Within** | A box rather than an element; **Within** is the innermost element under the box's center. |
@@ -59,7 +59,7 @@ Always Read both screenshots before deciding anything. The note says what to cha
 
 ### 1. Acknowledge
 
-Call `sim_acknowledge` with the id right before you start on that annotation, before any edit. The user sees it change to in progress. Several sessions can receive the same annotation, and only the first to acknowledge gets it: if the call says another session is already on it, leave it alone and move to the next one.
+Call `otto_acknowledge` with the id right before you start on that annotation, before any edit. The user sees it change to in progress. Several sessions can receive the same annotation, and only the first to acknowledge gets it: if the call says another session is already on it, leave it alone and move to the next one.
 
 Acknowledge one at a time as you start each. Acknowledging a batch up front tells the user you're working on notes you haven't opened, and keeps other sessions from taking them.
 
@@ -67,7 +67,7 @@ Acknowledge one at a time as you start each. Acknowledging a batch up front tell
 
 Compare the bundle ID with `PRODUCT_BUNDLE_IDENTIFIER` in the project's build settings (`.xcconfig` files, `project.pbxproj`, `project.yml`, `Info.plist`). Without a bundle ID, match the app name against the display name or product name.
 
-Notes on Apple's own apps (Settings, Safari, Photos, any `com.apple.*`) or on apps that aren't in this workspace can't be acted on. Don't edit lookalike code to satisfy them. Use `sim_reply` to say why, or `sim_dismiss` with the reason when there's nothing the user could add.
+Notes on Apple's own apps (Settings, Safari, Photos, any `com.apple.*`) or on apps that aren't in this workspace can't be acted on. Don't edit lookalike code to satisfy them. Use `otto_reply` to say why, or `otto_dismiss` with the reason when there's nothing the user could add.
 
 ### 3. Find the code
 
@@ -93,7 +93,7 @@ When a label appears in several places, use the frame, the screenshot and the **
 
 Do what the note asks, at the scope it asks. Keep the change small, and build it from what the project already uses: its fonts, colors, spacing and components. For several elements picked together, the note is about them together, so the result has to hold for all of them; check each one, since they may be styled in different places.
 
-Some notes need a decision only the user can make: what "make it pop" should mean here, which of two readings is meant, a change that conflicts with another note. Ask with `sim_reply`, as a concrete question with the options you see, and leave the note acknowledged until they answer. Their reply shows up as a **human** line on the annotation.
+Some notes need a decision only the user can make: what "make it pop" should mean here, which of two readings is meant, a change that conflicts with another note. Ask with `otto_reply`, as a concrete question with the options you see, and leave the note acknowledged until they answer. Their reply shows up as a **human** line on the annotation.
 
 ### 5. Check it
 
@@ -110,10 +110,10 @@ Relaunching takes the app back to its first screen, so skip it if the user is in
 
 ### 6. Report
 
-- **`sim_resolve`** when it's done: one line the user reads in the inspector. Name what changed and where, like `ItemRow price: own line under the name, 4pt above (ProduceList.swift)`. Say so if you couldn't build or run it.
-- **`sim_dismiss`** when you won't do it, with the reason.
-- **`sim_reply`** for a question or a note that doesn't change the status.
+- **`otto_resolve`** when it's done: one line the user reads in the inspector. Name what changed and where, like `ItemRow price: own line under the name, 4pt above (ProduceList.swift)`. Say so if you couldn't build or run it.
+- **`otto_dismiss`** when you won't do it, with the reason.
+- **`otto_reply`** for a question or a note that doesn't change the status.
 
-Only resolve what you changed. Then take the next annotation, or call `sim_watch` again if you're watching.
+Only resolve what you changed. Then take the next annotation, or call `otto_watch` again if you're watching.
 
 At the end, tell the user in the conversation what you did with each annotation, by id, in a line or two each.

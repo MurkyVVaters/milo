@@ -11,11 +11,11 @@ let package = Package(
     platforms: [.macOS(.v15)],
     products: [
         .executable(name: "otto", targets: ["otto"]),
-        .library(name: "SimBridge", targets: ["SimBridge"]),
+        .library(name: "OttoBridge", targets: ["OttoBridge"]),
     ],
     targets: [
         .target(
-            name: "SimBridge",
+            name: "OttoBridge",
             exclude: ["LICENSE-baguette", "LICENSE-sim-use"],
             linkerSettings: [
                 .linkedFramework("IOSurface"),
@@ -28,7 +28,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "otto",
-            dependencies: ["SimBridge"]
+            dependencies: ["OttoBridge"]
         ),
     ]
 )

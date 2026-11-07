@@ -1,6 +1,7 @@
+// Modified for Otto.
 // Adapted from baguette (https://github.com/tddworks/baguette),
 // Copyright 2026 tddworks, licensed under the Apache License 2.0 (see
-// LICENSE-baguette in SimBridge). DeviceHubAttachment.swift and
+// LICENSE-baguette in OttoBridge). DeviceHubAttachment.swift and
 // SimctlInputSurface.swift. Changes: folded into one type over our run().
 
 import Foundation

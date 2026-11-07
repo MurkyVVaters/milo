@@ -15,16 +15,16 @@ http://www.apache.org/licenses/LICENSE-2.0.
 
 This product includes software adapted from baguette
 (https://github.com/tddworks/baguette) by tddworks, licensed under the Apache
-License, Version 2.0: the simulator code in app/host/Sources/SimBridge, the
-iPhone Duo support in app/host/Sources/sim-agentation (Foldable.swift,
+License, Version 2.0: the simulator code in app/host/Sources/OttoBridge, the
+iPhone Duo support in app/host/Sources/otto (Foldable.swift,
 Guest.swift, Device3D.swift) and the guest helper in app/host/Guest. Its
-license is in app/host/Sources/SimBridge/LICENSE-baguette.
+license is in app/host/Sources/OttoBridge/LICENSE-baguette.
 
 This product includes software adapted from sim-use
 (https://github.com/lycorp-jp/sim-use) by LY Corporation, licensed under the
 Apache License, Version 2.0: CollapsedChildrenRecovery.swift in
-app/host/Sources/SimBridge. Its license is in
-app/host/Sources/SimBridge/LICENSE-sim-use, and its NOTICE reads:
+app/host/Sources/OttoBridge. Its license is in
+app/host/Sources/OttoBridge/LICENSE-sim-use, and its NOTICE reads:
 
     sim-use
     Copyright 2026 LY Corporation

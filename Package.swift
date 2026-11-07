@@ -10,7 +10,7 @@ import PackageDescription
 //
 // It builds for every Apple platform. Where UIKit draws the interface
 // (iOS, iPadOS, Mac Catalyst, tvOS, visionOS) a snapshot walks the views
-// and layers; on macOS and watchOS it carries the `.simTag()` views only.
+// and layers; on macOS and watchOS it carries the `.ottoTag()` views only.
 let package = Package(
     name: "OttoPlus",
     platforms: [.iOS(.v17), .macCatalyst(.v17), .macOS(.v14), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],

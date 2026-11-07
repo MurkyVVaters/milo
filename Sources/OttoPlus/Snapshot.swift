@@ -1,3 +1,4 @@
+// Modified for Otto.
 #if DEBUG
 import SwiftUI
 #if os(watchOS)
@@ -45,7 +46,7 @@ struct Snapshot: Encodable {
 /// Walks every visible window's views, plus the layers SwiftUI draws
 /// backgrounds and shapes into, in window coordinates (points). Without
 /// UIKit (macOS, watchOS) there are no views to walk, and the snapshot is
-/// the `.simTag()` views alone.
+/// the `.ottoTag()` views alone.
 @MainActor
 enum SnapshotBuilder {
     static func build() -> Snapshot {
@@ -149,7 +150,7 @@ enum SnapshotBuilder {
         Bundle(for: cls).bundleURL == Bundle.main.bundleURL
     }
 
-    /// `EntryPassView` for `UIHostingController<ModifiedContent<EntryPassView, SimTagModifier>>`.
+    /// `EntryPassView` for `UIHostingController<ModifiedContent<EntryPassView, OttoTagModifier>>`.
     /// Nil for wrappers that don't name a view, like the app's own root `AnyView`.
     static func hostedViewName(of controller: UIViewController) -> String? {
         let prefix = "UIHostingController<"

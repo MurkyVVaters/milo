@@ -1,3 +1,4 @@
+// Modified for Otto.
 #if DEBUG
 import SwiftUI
 
@@ -51,7 +52,7 @@ private struct UIKitTag {
 }
 #endif
 
-struct SimTagModifier: ViewModifier {
+struct OttoTagModifier: ViewModifier {
     let name: String
     let file: String
     let line: Int

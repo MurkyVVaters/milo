@@ -1,7 +1,7 @@
 # Modified for Otto.
 name: Release
 
-# Run it from the Actions tab with a version (0.2.2, no "v": the SDK's Swift
+# Run it from the Actions tab with a version (0.3.0, no "v": the SDK's Swift
 # package uses the same tags). It sets Config.version and the plugin
 # manifests, tags that commit, builds the Mac side, and publishes the
 # release with the tarball and its .sha256. main moves to the release
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to release, like 0.2.2
+        description: Version to release, like 0.3.0
         required: true
         type: string
   push:
@@ -45,7 +45,7 @@ jobs:
           python3 app/scripts/plugins.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "$VERSION"
+          if ! git diff --quiet; then git commit -am "$VERSION"; fi
           git tag "$VERSION"
           # The tag alone for now: main follows once the release exists.
           git push origin "$VERSION"

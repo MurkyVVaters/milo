@@ -2,7 +2,7 @@
 import CoreGraphics
 import Foundation
 import IOSurface
-import SimBridge
+import OttoBridge
 
 /// How the screen goes over the wire, as baguette's stream socket names it.
 ///

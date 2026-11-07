@@ -1,6 +1,6 @@
 // Modified for Otto.
 import Foundation
-import SimBridge
+import OttoBridge
 
 // otto: the browser UI's server and the MCP server, in one binary.
 //

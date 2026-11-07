@@ -19,7 +19,7 @@ claude --dangerously-load-development-channels server:otto
 claude --resume <session> --dangerously-load-development-channels server:otto
 ```
 
-Without the flag, nothing is pushed and the tools work as before: use `sim_watch` to wait for annotations.
+Without the flag, nothing is pushed and the tools work as before: use `otto_watch` to wait for annotations.
 
 Adding an MCP server changes the user's configuration, so suggest the command and let the user run it.
 
@@ -27,10 +27,10 @@ Adding an MCP server changes the user's configuration, so suggest the command an
 
 | Symptom | What it means |
 |---|---|
-| No `sim_*` tools | The MCP server isn't configured for this client, or failed to start. The plugin's server says "couldn't be downloaded, and none is installed" when it was offline on first start and no copy is installed. |
+| No `otto_*` tools | The MCP server isn't configured for this client, or failed to start. The plugin needs its matching Otto version; it reports that the version isn't installed and couldn't be downloaded if the release is unavailable or the download fails. Build the repository and set `OTTO_BIN` to the executable. |
 | "Unable to connect" | The web server isn't up and couldn't be started. The user can run `pnpm start` in the Otto repository and open http://localhost:38470. |
 | "another agent session is already working on this annotation" | Another session acknowledged it first. Leave it. |
-| `sim_watch` returns "Nothing new yet" | It timed out (about 100 seconds). Call it again to keep waiting. |
+| `otto_watch` returns "Nothing new yet" | It timed out (about 100 seconds). Call it again to keep waiting. |
 | An annotation has no **Source** line | The app doesn't run the OttoPlus SDK. Search by labels; if the user wants exact source lines, the `otto-sdk` skill adds the SDK. |
 
 ## Without MCP

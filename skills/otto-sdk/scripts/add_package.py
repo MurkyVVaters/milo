@@ -11,7 +11,7 @@ to find the objects, and checks the result.
     add_package.py App.xcodeproj --target App
     add_package.py App.xcodeproj --target App --url URL --from 1.2.0 --product Name
 
-Defaults add OttoPlus. Running it again changes nothing.
+Defaults add OttoPlus from the main branch. Running it again changes nothing.
 """
 
 import argparse
@@ -23,7 +23,6 @@ import subprocess
 import sys
 
 DEFAULT_URL = "https://github.com/MurkyVVaters/otto"
-DEFAULT_FROM = "0.1.1"
 DEFAULT_PRODUCT = "OttoPlus"
 
 
@@ -95,7 +94,9 @@ def main():
     parser.add_argument("project", help="path to the .xcodeproj")
     parser.add_argument("--target", required=True, help="the target that links the product (usually the app)")
     parser.add_argument("--url", default=DEFAULT_URL)
-    parser.add_argument("--from", dest="minimum", default=DEFAULT_FROM, help="minimum version, up to the next major")
+    requirement = parser.add_mutually_exclusive_group()
+    requirement.add_argument("--from", dest="minimum", help="minimum published Otto version, up to the next major")
+    requirement.add_argument("--branch", help="repository branch (default: main)")
     parser.add_argument("--product", default=DEFAULT_PRODUCT)
     args = parser.parse_args()
 
@@ -131,13 +132,17 @@ def main():
 
     if package_id is None:
         package_id = new_id(text, taken)
+        requirement_text = (
+            f"\t\t\t\tkind = upToNextMajorVersion;\n\t\t\t\tminimumVersion = {args.minimum};\n"
+            if args.minimum else
+            f"\t\t\t\tkind = branch;\n\t\t\t\tbranch = \"{args.branch or 'main'}\";\n"
+        )
         text = add_section_entry(text, "XCRemoteSwiftPackageReference",
             f"\t\t{package_id} /* {ref_comment} */ = {{\n"
             f"\t\t\tisa = XCRemoteSwiftPackageReference;\n"
             f"\t\t\trepositoryURL = \"{url}\";\n"
             f"\t\t\trequirement = {{\n"
-            f"\t\t\t\tkind = upToNextMajorVersion;\n"
-            f"\t\t\t\tminimumVersion = {args.minimum};\n"
+            f"{requirement_text}"
             f"\t\t\t}};\n"
             f"\t\t}};\n")
         text = add_to_list(text, root_id, "packageReferences", f"{package_id} /* {ref_comment} */")
@@ -179,7 +184,8 @@ def main():
         os.replace(pbxproj + ".new", pbxproj + ".rejected")
         sys.exit(f"the edited file doesn't parse; left it at project.pbxproj.rejected: {lint.stdout.strip()}")
     os.replace(pbxproj + ".new", pbxproj)
-    print(f"Added {args.product} ({url}, from {args.minimum}) to {args.target}.")
+    requirement_label = f"from {args.minimum}" if args.minimum else f"branch {args.branch or 'main'}"
+    print(f"Added {args.product} ({url}, {requirement_label}) to {args.target}.")
     print("Next: xcodebuild -resolvePackageDependencies, then build.")
 
 
