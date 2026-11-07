@@ -33,7 +33,7 @@ repository = "https://github.com/MurkyVVaters/otto"
 keywords = ["ios", "simulator", "annotation", "design-review", "swiftui", "uikit", "mcp"]
 common = {"name": "otto", "version": version, "description": description, "author": author,
           "homepage": repository, "repository": repository, "license": "Apache-2.0", "keywords": keywords}
-icon = "./app/web/public/icon.svg"
+icon = "./app/web/public/icon.png"
 
 files = {
     ".claude-plugin/plugin.json": dict(common, mcpServers=servers),

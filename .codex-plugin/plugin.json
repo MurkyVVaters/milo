@@ -33,8 +33,8 @@
     ],
     "websiteURL": "https://github.com/MurkyVVaters/otto",
     "brandColor": "#6E56CF",
-    "composerIcon": "./app/web/public/icon.svg",
-    "logo": "./app/web/public/icon.svg",
+    "composerIcon": "./app/web/public/icon.png",
+    "logo": "./app/web/public/icon.png",
     "defaultPrompt": [
       "Go through my pending simulator annotations",
       "Watch for my simulator annotations and fix them as they come in",

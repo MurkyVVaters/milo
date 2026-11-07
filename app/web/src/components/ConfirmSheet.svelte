@@ -19,7 +19,7 @@
 
 <dialog class="sheet" bind:this={dialog} onclose={close} oncancel={(e) => { e.preventDefault(); dismiss(); }} aria-labelledby="confirm-sheet-title">
   <form class="alert-body" onsubmit={submit}>
-    <div class="alert-icon"><img src="/icon.svg" alt=""></div>
+    <div class="alert-icon"><img src="/icon.png" alt=""></div>
     <div class="alert-text">
       <h2 id="confirm-sheet-title">{title}</h2>
       <p>{text}</p>
