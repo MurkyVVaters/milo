@@ -1,5 +1,6 @@
+// Modified for Otto.
 import SwiftUI
-import SimAgentationPlus
+import OttoPlus
 
 struct Show: Identifiable {
     let id = UUID()
@@ -41,7 +42,7 @@ public struct ContentView: View {
             }
             .navigationTitle("Tonight")
         }
-        .simAgentation()
+        .otto()
     }
 
     public init() {}

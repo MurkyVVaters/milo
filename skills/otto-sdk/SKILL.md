@@ -1,22 +1,23 @@
 ---
-name: sim-agentation-sdk
-description: Add the SimAgentationPlus SDK to an Apple app, so the annotations a user draws in SimAgentation carry the exact Swift file and line of each tagged view, the app's real view tree and its bundle ID. Covers adding the Swift package (Package.swift, XcodeGen, Tuist or a plain .xcodeproj), starting the inspector with .simAgentation(), and choosing where .simTag() goes. Use this whenever the user wants to install, integrate or set up SimAgentationPlus or "the SimAgentation SDK", asks why their annotations have no Source line or how to make selections more precise, mentions .simTag() or .simAgentation(), or wants more views tagged in an app that already has the SDK.
+name: otto-sdk
+description: Add the OttoPlus SDK to an Apple app, so the annotations a user draws in Otto carry the exact Swift file and line of each tagged view, the app's real view tree and its bundle ID. Covers adding the Swift package (Package.swift, XcodeGen, Tuist or a plain .xcodeproj), starting the inspector with .otto(), and choosing where .simTag() goes. Use this whenever the user wants to install, integrate or set up OttoPlus or "the Otto SDK", asks why their annotations have no Source line or how to make selections more precise, mentions .simTag() or .otto(), or wants more views tagged in an app that already has the SDK.
 ---
+<!-- Modified for Otto. -->
 
-# Adding SimAgentationPlus
+# Adding OttoPlus
 
-SimAgentation works on any app from the simulator's accessibility tree, so the SDK is optional. With it, each annotation also names the tagged view and the file and line it comes from, takes parents from the real view and layer tree instead of guessing from pixels, and carries the app's bundle ID. Agents fixing annotations go straight to the code instead of searching for labels.
+Otto works on any app from the simulator's accessibility tree, so the SDK is optional. With it, each annotation also names the tagged view and the file and line it comes from, takes parents from the real view and layer tree instead of guessing from pixels, and carries the app's bundle ID. Agents fixing annotations go straight to the code instead of searching for labels.
 
-Everything in the SDK compiles out of Release builds: `.simAgentation()` and `.simTag()` become no-ops, and no `#if DEBUG` is needed around them.
+Everything in the SDK compiles out of Release builds: `.otto()` and `.simTag()` become no-ops, and no `#if DEBUG` is needed around them.
 
 ## Facts to work from
 
 | | |
 |---|---|
-| Package URL | `https://github.com/lcandy2/sim-agentation` |
-| Version | from `0.1.1` (up to next major) |
-| Package identity | `sim-agentation` |
-| Product and module | `SimAgentationPlus` (the package's only library) |
+| Package URL | `https://github.com/MurkyVVaters/otto` |
+| Version | Use a local package until this repository publishes a versioned release |
+| Package identity | `otto` |
+| Product and module | `OttoPlus` (the package's only library) |
 | Platforms | iOS and iPadOS 17, Mac Catalyst 17, macOS 14, tvOS 17, watchOS 10, visionOS 1 |
 | Inspector | HTTP on `127.0.0.1:38471`, Debug builds only |
 
@@ -26,17 +27,19 @@ If a target's deployment target is below these, the package won't link there. Ra
 
 ## 1. Add the package where the views live
 
+Until an Otto release is tagged, use a local dependency on this checkout (`.package(path: "/absolute/path/to/otto")`) or the repository's `main` branch. The version-based examples and plain-project helper below apply after a corresponding Otto release exists; do not resolve the original project's tags as Otto releases.
+
 Link the product into the module that contains the SwiftUI or UIKit views you'll tag, and into the app target if that's where the root view is. Find how the project declares dependencies:
 
 - **A local Swift package holds the features** (an `…Package/Package.swift` that the app links, a common layout for Xcode projects with a workspace): edit that `Package.swift`.
 
   ```swift
   dependencies: [
-      .package(url: "https://github.com/lcandy2/sim-agentation", from: "0.1.1"),
+      .package(url: "https://github.com/MurkyVVaters/otto", from: "0.1.1"),
   ],
   // in the feature target:
   .target(name: "AppFeature", dependencies: [
-      .product(name: "SimAgentationPlus", package: "sim-agentation"),
+      .product(name: "OttoPlus", package: "otto"),
   ]),
   ```
 
@@ -46,17 +49,17 @@ Link the product into the module that contains the SwiftUI or UIKit views you'll
 
   ```yaml
   packages:
-    sim-agentation:
-      url: https://github.com/lcandy2/sim-agentation
+    otto:
+      url: https://github.com/MurkyVVaters/otto
       from: 0.1.1
   targets:
     App:
       dependencies:
-        - package: sim-agentation
-          product: SimAgentationPlus
+        - package: otto
+          product: OttoPlus
   ```
 
-- **Tuist**: add it to `Tuist/Package.swift` and `.external(name: "SimAgentationPlus")` in the target, then `tuist install` and `tuist generate`.
+- **Tuist**: add it to `Tuist/Package.swift` and `.external(name: "OttoPlus")` in the target, then `tuist install` and `tuist generate`.
 
 - **A plain `.xcodeproj`** with the views in an app target: run the bundled script. It edits `project.pbxproj` the way Xcode's File > Add Package Dependencies does (package reference, product dependency, Frameworks phase) and leaves the rest of the file untouched. Hand-editing that file is easy to get subtly wrong, which is why the script exists.
 
@@ -67,26 +70,26 @@ Link the product into the module that contains the SwiftUI or UIKit views you'll
 
   Run it once per target that needs the module. It changes nothing on a second run.
 
-If the app lives inside the SimAgentation repository itself, use a path dependency to the repository root instead of the URL.
+If the app lives inside the Otto repository itself, use a path dependency to the repository root instead of the URL.
 
 ## 2. Start the inspector
 
-Call `.simAgentation()` once, on the root view of the app's window, and `import SimAgentationPlus` in that file:
+Call `.otto()` once, on the root view of the app's window, and `import OttoPlus` in that file:
 
 ```swift
 WindowGroup {
     ContentView()
-        .simAgentation()
+        .otto()
 }
 ```
 
 Putting it on the root view inside the feature module works too, when that's where the import is. A UIKit app without a SwiftUI root starts it from the app or scene delegate, which run on the main actor:
 
 ```swift
-SimAgentation.start()
+Otto.start()
 ```
 
-The simulator shares the Mac's loopback, so one app at a time can hold port 38471. Two SDK apps in two simulators need different ports: `.simAgentation(port: 38475)`, with the host started with `SIM_AGENTATION_SDK_URL=http://127.0.0.1:38475`.
+The simulator shares the Mac's loopback, so one app at a time can hold port 38471. Two SDK apps in two simulators need different ports: `.otto(port: 38475)`, with the host started with `OTTO_SDK_URL=http://127.0.0.1:38475`.
 
 ## 3. Tag the views people will point at
 
@@ -128,8 +131,8 @@ A SwiftUI view hosted in UIKit is tagged on the SwiftUI side: `UIHostingControll
    ```
 
    Only tags on screen are listed, so open the screens you tagged.
-3. In SimAgentation, the header reads `Frozen · SDK` in Design Mode when the app in front has the SDK, and annotations gain **Source** lines.
+3. In Otto, the header reads `Frozen · SDK` in Design Mode when the app in front has the SDK, and annotations gain **Source** lines.
 
-If nothing answers on 38471, the inspector didn't start: check that `.simAgentation()` is on a view that appears, that the build is Debug, and that no other app holds the port.
+If nothing answers on 38471, the inspector didn't start: check that `.otto()` is on a view that appears, that the build is Debug, and that no other app holds the port.
 
 When you're done, tell the user which targets link the SDK, where the inspector starts, and which views you tagged.

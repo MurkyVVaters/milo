@@ -1,11 +1,12 @@
+// Modified for Otto.
 import Foundation
 import SimBridge
 
-// sim-agentation: the browser UI's server and the MCP server, in one binary.
+// otto: the browser UI's server and the MCP server, in one binary.
 //
-//   sim-agentation serve [--port 38470] [--open]
-//   sim-agentation mcp
-//   sim-agentation version
+//   otto serve [--port 38470] [--open]
+//   otto mcp
+//   otto version
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 // No command means serve.
@@ -25,7 +26,7 @@ switch command {
 case "serve":
     var port = Config.defaultPort
     if let value = option("--port") {
-        guard let parsed = UInt16(value) else { fail("sim-agentation: bad --port \(value)") }
+        guard let parsed = UInt16(value) else { fail("otto: bad --port \(value)") }
         port = parsed
     }
     let store = Store(home: Config.home)
@@ -37,14 +38,14 @@ case "serve":
         server = try HTTPServer(port: port) { request in await app.handle(request) }
         try await server.start()
     } catch {
-        fail("sim-agentation: could not listen on 127.0.0.1:\(port) (\(error)). Is the port in use?")
+        fail("otto: could not listen on 127.0.0.1:\(port) (\(error)). Is the port in use?")
     }
     if Config.webDirectory == nil {
-        FileHandle.standardError.write(Data("sim-agentation: no web/ directory found; set SIM_AGENTATION_WEB\n".utf8))
+        FileHandle.standardError.write(Data("otto: no web/ directory found; set OTTO_WEB\n".utf8))
     } else if let dist, !FileManager.default.fileExists(atPath: Path.join(dist, "index.html")) {
-        FileHandle.standardError.write(Data("sim-agentation: the UI isn't built; run `pnpm build` in the repo\n".utf8))
+        FileHandle.standardError.write(Data("otto: the UI isn't built; run `pnpm build` in the repo\n".utf8))
     }
-    FileHandle.standardError.write(Data("sim-agentation: http://localhost:\(port)  (data in \(store.home))\n".utf8))
+    FileHandle.standardError.write(Data("otto: http://localhost:\(port)  (data in \(store.home))\n".utf8))
     if arguments.contains("--open") {
         let open = Process()
         open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
@@ -65,8 +66,8 @@ case "version":
 default:
     fail("""
     Usage:
-      sim-agentation serve [--port N] [--open]   Start the browser UI on http://localhost:\(Config.defaultPort)
-      sim-agentation mcp                         Run the MCP server over stdio (for Claude Code, Codex, …)
-      sim-agentation version                     Print the version
+      otto serve [--port N] [--open]   Start the browser UI on http://localhost:\(Config.defaultPort)
+      otto mcp                         Run the MCP server over stdio (for Claude Code, Codex, …)
+      otto version                     Print the version
     """)
 }

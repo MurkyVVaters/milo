@@ -1,3 +1,4 @@
+# Modified for Otto.
 name: Release
 
 # Run it from the Actions tab with a version (0.2.2, no "v": the SDK's Swift
@@ -7,7 +8,7 @@ name: Release
 # commit last, once the download the plugins point at exists.
 #
 # A version tag pushed by hand releases that commit the same way, without
-# the bump. Either way, the tap's formula follows (tap.yml).
+# the bump.
 
 on:
   workflow_dispatch:
@@ -40,7 +41,7 @@ jobs:
         run: |
           echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "Not a version: $VERSION"; exit 1; }
           if git rev-parse -q --verify "refs/tags/$VERSION" > /dev/null; then echo "$VERSION is tagged already"; exit 1; fi
-          sed -i -E "s/static let version = \"[^\"]+\"/static let version = \"$VERSION\"/" app/host/Sources/sim-agentation/Config.swift
+          sed -i -E "s/static let version = \"[^\"]+\"/static let version = \"$VERSION\"/" app/host/Sources/otto/Config.swift
           python3 app/scripts/plugins.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -72,7 +73,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: The tag matches Config.version
         run: |
-          version=$(sed -n 's/.*static let version = "\(.*\)".*/\1/p' app/host/Sources/sim-agentation/Config.swift)
+          version=$(sed -n 's/.*static let version = "\(.*\)".*/\1/p' app/host/Sources/otto/Config.swift)
           test "$version" = "$TAG" || { echo "Config.version is $version, the tag is $TAG"; exit 1; }
       - name: The plugins carry this version
         run: python3 app/scripts/plugins.py --check
@@ -80,23 +81,15 @@ jobs:
         run: |
           app/scripts/package.sh
           # What the plugins' launcher checks its download against.
-          cd dist && shasum -a 256 "sim-agentation-$TAG-macos-arm64.tar.gz" > "sim-agentation-$TAG-macos-arm64.tar.gz.sha256"
+          cd dist && shasum -a 256 "otto-$TAG-macos-arm64.tar.gz" > "otto-$TAG-macos-arm64.tar.gz.sha256"
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$TAG" \
-            "dist/sim-agentation-$TAG-macos-arm64.tar.gz" \
-            "dist/sim-agentation-$TAG-macos-arm64.tar.gz.sha256" \
+            "dist/otto-$TAG-macos-arm64.tar.gz" \
+            "dist/otto-$TAG-macos-arm64.tar.gz.sha256" \
             --title "$TAG" --generate-notes
-
-  tap:
-    needs: release
-    if: always() && needs.release.result == 'success'
-    uses: ./.github/workflows/tap.yml
-    with:
-      version: ${{ inputs.version || github.ref_name }}
-    secrets: inherit
 
   main:
     needs: [bump, release]

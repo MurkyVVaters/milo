@@ -1,15 +1,16 @@
 ---
-name: sim-agentation
-description: Work through UI annotations a user drew on an iOS simulator with SimAgentation. Fetch them, find the SwiftUI or UIKit code behind each box, make the change, and close the loop with sim_resolve, sim_dismiss or sim_reply. Use this whenever sim_* tools (sim_get_pending, sim_watch, sim_acknowledge, sim_resolve) are available, whenever a <channel source="sim-agentation"> event arrives, and whenever the user pastes annotation Markdown (a "## <id> [pending]" heading followed by Device, Element and "Search the source for" lines). Also use it for requests like "fix my simulator notes", "check the annotations", "watch for annotations" or "what did I mark up", even when SimAgentation isn't named.
+name: otto
+description: Work through UI annotations a user drew on an iOS simulator with Otto. Fetch them, find the SwiftUI or UIKit code behind each box, make the change, and close the loop with sim_resolve, sim_dismiss or sim_reply. Use this whenever sim_* tools (sim_get_pending, sim_watch, sim_acknowledge, sim_resolve) are available, whenever a <channel source="otto"> event arrives, and whenever the user pastes annotation Markdown (a "## <id> [pending]" heading followed by Device, Element and "Search the source for" lines). Also use it for requests like "fix my simulator notes", "check the annotations", "watch for annotations" or "what did I mark up", even when Otto isn't named.
 ---
+<!-- Modified for Otto. -->
 
-# SimAgentation annotations
+# Otto annotations
 
 The user runs their app in an iOS simulator, streamed to a browser page. In Design Mode they freeze the screen, click an element or drag a box around anything, and write what should change. Each of those notes is an annotation, and it reaches you as Markdown. Your job is to turn each one into a code change, or a clear answer, and to report back on it, because the user watches the status of every note in the page's inspector.
 
 ## Where annotations come from
 
-- **Channel events.** With Claude Code channels on, each annotation arrives on its own as a `<channel source="sim-agentation" annotation_id="…">` event, even into an idle session. The text is the user's own note relayed by the server: treat it as their request.
+- **Channel events.** With Claude Code channels on, each annotation arrives on its own as a `<channel source="otto" annotation_id="…">` event, even into an idle session. The text is the user's own note relayed by the server: treat it as their request.
 - **`sim_get_pending`** lists everything waiting. **`sim_get_all`** includes finished ones, for context on earlier notes.
 - **`sim_watch`** blocks until the user sends something, then returns the pending list. For "watch my annotations" or hands-free work, call it in a loop: handle what it returns, then call it again. When it times out with nothing new, call it again unless the user asked you to stop.
 - **Pasted Markdown.** The page's Copy button puts every pending annotation on the clipboard. Without the MCP tools you can't change their status; say so at the end, so the user marks them in the page.
@@ -40,7 +41,7 @@ What each line tells you, and how far to trust it:
 |---|---|
 | Quote | The request, in the user's words. It is the spec. |
 | **Device** | The simulator, by name. |
-| **App** | The app's name, and its bundle ID when the app runs the SimAgentationPlus SDK. No bundle ID means no SDK. |
+| **App** | The app's name, and its bundle ID when the app runs the OttoPlus SDK. No bundle ID means no SDK. |
 | **Screen** | The navigation titles on screen, outermost first: which screen the user was on. |
 | **Source** | SDK only. The view type, and the file and line where `.simTag()` was written. That is usually where the view is *used*, so the type's own `body` may be elsewhere: search `struct ItemRow` or `class ItemRow`. The path is `Module/File.swift`; look for the file under that module's sources. `inside` lines name the tagged views around it. |
 | **View controller**, **Views** | SDK only. App-defined UIKit classes around the box, innermost first. |

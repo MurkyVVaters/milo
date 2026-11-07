@@ -1,4 +1,5 @@
 // swift-tools-version: 6.2
+// Modified for Otto.
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -14,14 +15,14 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../../.."), // this repository: the SimAgentationPlus SDK
+        .package(path: "../../../.."), // this repository: the OttoPlus SDK
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "DemoAppFeature",
-            dependencies: [.product(name: "SimAgentationPlus", package: "sim-agentation")]
+            dependencies: [.product(name: "OttoPlus", package: "otto")]
         ),
         .testTarget(
             name: "DemoAppFeatureTests",

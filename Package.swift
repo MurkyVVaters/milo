@@ -1,9 +1,10 @@
 // swift-tools-version: 6.0
+// Modified for Otto.
 
 import PackageDescription
 
-// SimAgentationPlus, the optional in-app SDK: add this repository's URL in
-// Xcode (File > Add Package Dependencies) and link SimAgentationPlus. The
+// OttoPlus, the optional in-app SDK: add this repository's URL in
+// Xcode (File > Add Package Dependencies) and link OttoPlus. The
 // host and the web UI build separately (see host/Package.swift and
 // package.json); this manifest is the SDK alone.
 //
@@ -11,12 +12,12 @@ import PackageDescription
 // (iOS, iPadOS, Mac Catalyst, tvOS, visionOS) a snapshot walks the views
 // and layers; on macOS and watchOS it carries the `.simTag()` views only.
 let package = Package(
-    name: "SimAgentationPlus",
+    name: "OttoPlus",
     platforms: [.iOS(.v17), .macCatalyst(.v17), .macOS(.v14), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)],
     products: [
-        .library(name: "SimAgentationPlus", targets: ["SimAgentationPlus"]),
+        .library(name: "OttoPlus", targets: ["OttoPlus"]),
     ],
     targets: [
-        .target(name: "SimAgentationPlus"),
+        .target(name: "OttoPlus"),
     ]
 )

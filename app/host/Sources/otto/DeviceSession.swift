@@ -1,3 +1,4 @@
+// Modified for Otto.
 import CoreGraphics
 import Foundation
 import IOSurface
@@ -42,11 +43,11 @@ final class DeviceSession: @unchecked Sendable {
     private let scaler = VideoFrameScaler()
     private let stillScaler = VideoFrameScaler() // its own pool: stills are full size, the stream may not be
     private let video: VideoEncoder?
-    private let encodeQueue = DispatchQueue(label: "sim-agentation.encode", qos: .userInteractive)
-    private let inputQueue = DispatchQueue(label: "sim-agentation.input", qos: .userInteractive)
+    private let encodeQueue = DispatchQueue(label: "otto.encode", qos: .userInteractive)
+    private let inputQueue = DispatchQueue(label: "otto.input", qos: .userInteractive)
     /// A foldable's hinge, turns and keys, played in the guest one at a
     /// time (a fold takes 0.8 s) without holding up touches.
-    private let guestQueue = DispatchQueue(label: "sim-agentation.guest", qos: .userInitiated)
+    private let guestQueue = DispatchQueue(label: "otto.guest", qos: .userInitiated)
     private let lock = NSLock()
     private var options: StreamOptions
     private var encoding = false
@@ -428,7 +429,7 @@ final class DeviceSession: @unchecked Sendable {
             }
             return rendered
         } catch {
-            FileHandle.standardError.write(Data("sim-agentation: 3D frame skipped: \(error)\n".utf8))
+            FileHandle.standardError.write(Data("otto: 3D frame skipped: \(error)\n".utf8))
             return nil
         }
     }

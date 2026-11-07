@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified for Otto.
 """Add a remote Swift package product to a target in an .xcodeproj.
 
 Does what Xcode's File > Add Package Dependencies does to project.pbxproj:
@@ -10,7 +11,7 @@ to find the objects, and checks the result.
     add_package.py App.xcodeproj --target App
     add_package.py App.xcodeproj --target App --url URL --from 1.2.0 --product Name
 
-Defaults add SimAgentationPlus. Running it again changes nothing.
+Defaults add OttoPlus. Running it again changes nothing.
 """
 
 import argparse
@@ -21,9 +22,9 @@ import secrets
 import subprocess
 import sys
 
-DEFAULT_URL = "https://github.com/lcandy2/sim-agentation"
+DEFAULT_URL = "https://github.com/MurkyVVaters/otto"
 DEFAULT_FROM = "0.1.1"
-DEFAULT_PRODUCT = "SimAgentationPlus"
+DEFAULT_PRODUCT = "OttoPlus"
 
 
 def load(pbxproj):

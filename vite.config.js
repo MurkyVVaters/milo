@@ -1,3 +1,4 @@
+// Modified for Otto.
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { randomBytes } from 'node:crypto';
@@ -6,7 +7,7 @@ import { rmSync, writeFileSync } from 'node:fs';
 // The UI is built to static files the Swift host serves. `pnpm dev` also
 // serves it with hot reload on DEV_PORT, proxying everything else to the
 // running host (`pnpm start`).
-const HOST = `http://localhost:${process.env.SIM_AGENTATION_PORT ?? 38470}`;
+const HOST = `http://localhost:${process.env.OTTO_PORT ?? 38470}`;
 const DEV_PORT = 38472;
 const DEV_ORIGINS = new Set([`http://localhost:${DEV_PORT}`, `http://127.0.0.1:${DEV_PORT}`]);
 const HOST_PORT = new URL(HOST).port;
@@ -34,7 +35,7 @@ function devServerNote() {
   const file = new URL('./app/web/.dev-server.json', import.meta.url);
   const token = randomBytes(24).toString('hex');
   return {
-    name: 'sim-agentation-dev-server-note',
+    name: 'otto-dev-server-note',
     configureServer(server) {
       rmSync(file, { force: true }); // a new file, so the owner-only mode holds
       writeFileSync(file, JSON.stringify({ token, pid: process.pid }), { mode: 0o600, flag: 'wx' });

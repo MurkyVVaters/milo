@@ -1,5 +1,6 @@
+<!-- Modified for Otto. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="588 482 660 660">
-  <!-- SimAgentation's pen alone (from icon.svg), for the favicon: the full icon is unreadable at 16 px. -->
+  <!-- Otto's pen alone (from icon.svg), for the favicon: the full icon is unreadable at 16 px. -->
   <defs>
     <path id="nib-body" d="M608 498C697 555 799 585 896 605Q908 608 912 626C934 719 978 792 1039 845L868 988C808 903 748 848 660 800Q651 796 651 783C653 680 636 573 604 504Q602 499 608 498Z"/>
     <path id="nib-face" d="M609 500C692 554 784 585 890 615C914 719 945 793 1000 858C963 880 929 906 901 936C834 861 762 815 667 784Q663 782 663 771C662 675 640 574 606 505Q605 501 609 500Z"/>

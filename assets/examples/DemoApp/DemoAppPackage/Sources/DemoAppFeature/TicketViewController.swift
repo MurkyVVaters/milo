@@ -1,8 +1,9 @@
+// Modified for Otto.
 import SwiftUI
 import UIKit
-import SimAgentationPlus
+import OttoPlus
 
-/// A UIKit screen, to exercise SimAgentationPlus on UIKit views.
+/// A UIKit screen, to exercise OttoPlus on UIKit views.
 final class TicketViewController: UIViewController {
     private let show: Show
 

@@ -1,5 +1,5 @@
 {
-  "name": "sim-agentation",
+  "name": "otto",
   "version": "0.2.2",
   "private": true,
   "description": "Annotate a running iOS simulator in the browser and hand the feedback to coding agents over MCP.",
@@ -8,8 +8,8 @@
     "build": "vite build && swift build --package-path app/host",
     "dev": "vite",
     "watch": "vite build --watch",
-    "start": "app/host/.build/debug/sim-agentation serve --open",
-    "mcp": "app/host/.build/debug/sim-agentation mcp"
+    "start": "app/host/.build/debug/otto serve --open",
+    "mcp": "app/host/.build/debug/otto mcp"
   },
   "license": "Apache-2.0",
   "devDependencies": {

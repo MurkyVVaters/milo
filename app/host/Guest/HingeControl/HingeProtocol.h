@@ -1,7 +1,8 @@
+// Modified for Otto.
 // Copied from baguette (https://github.com/tddworks/baguette, Injected/HingeControl
 // at 5644ba2), Copyright 2026 tddworks, licensed under the Apache License 2.0
 // (see host/Sources/SimBridge/LICENSE-baguette). Changes: the HID services'
-// product names; the host builds it (see host/Sources/sim-agentation/Guest.swift).
+// product names; the host builds it (see host/Sources/otto/Guest.swift).
 
 #pragma once
 #import <Foundation/Foundation.h>
