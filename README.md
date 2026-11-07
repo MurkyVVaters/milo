@@ -59,13 +59,13 @@ Other MCP clients can use the same executable with `mcp` as its argument. The se
 
 | Tool | Purpose |
 |---|---|
-| `sim_get_pending` | Read pending annotations and screenshot paths |
-| `sim_get_all` | Read every annotation, including completed ones |
-| `sim_watch` | Wait for new annotations |
-| `sim_acknowledge` | Take an annotation into progress |
-| `sim_resolve` | Mark an annotation as fixed |
-| `sim_dismiss` | Decline an annotation with a reason |
-| `sim_reply` | Reply to an annotation |
+| `otto_get_pending` | Read pending annotations and screenshot paths |
+| `otto_get_all` | Read every annotation, including completed ones |
+| `otto_watch` | Wait for new annotations |
+| `otto_acknowledge` | Take an annotation into progress |
+| `otto_resolve` | Mark an annotation as fixed |
+| `otto_dismiss` | Decline an annotation with a reason |
+| `otto_reply` | Reply to an annotation |
 
 The agent skills in [skills/](skills) explain how to work through annotations and add the optional SDK. See [SETUP.md](SETUP.md) for setup instructions.
 
@@ -80,10 +80,10 @@ RootView()
     .otto()
 
 ShowRow(show: show)
-    .simTag()
+    .ottoTag()
 ```
 
-UIKit apps can start the inspector with `Otto.start()` and tag individual views with `.simTag()`. The [demo app](assets/examples/DemoApp) includes SwiftUI and UIKit examples.
+UIKit apps can start the inspector with `Otto.start()` and tag individual views with `.ottoTag()`. The [demo app](assets/examples/DemoApp) includes SwiftUI and UIKit examples.
 
 ## Configuration
 

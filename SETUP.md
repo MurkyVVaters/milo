@@ -42,7 +42,7 @@ Read [the annotation skill](skills/otto/SKILL.md) before working through notes. 
 1. Run `app/host/.build/debug/otto version` from the checkout.
 2. Open the browser workspace and choose a simulator.
 3. Press **⇧⌘D**, select an element, write a note, and press Return.
-4. Ask the agent to call `sim_get_pending` and confirm that the annotation and screenshot paths are present.
+4. Ask the agent to call `otto_get_pending` and confirm that the annotation and screenshot paths are present.
 
 The source build is ready to use without a packaged release. Plugin launchers can use the same local build through `OTTO_BIN`; their automatic downloads require a matching release in this repository.
 

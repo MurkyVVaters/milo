@@ -19,10 +19,10 @@ final class TicketViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground
 
-        let card = TicketCardView(show: show).simTag()
+        let card = TicketCardView(show: show).ottoTag()
 
         // SwiftUI inside UIKit, which in turn hosts a UIKit view.
-        let pass = UIHostingController(rootView: EntryPassView(gate: "Gate 3").simTag())
+        let pass = UIHostingController(rootView: EntryPassView(gate: "Gate 3").ottoTag())
         pass.sizingOptions = .intrinsicContentSize
         pass.view.backgroundColor = .clear
         addChild(pass)

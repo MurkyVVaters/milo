@@ -1,6 +1,6 @@
 // Modified for Otto.
 import Foundation
-import SimBridge
+import OttoBridge
 
 /// The browser UI's server: static files, the annotation API, device chrome
 /// and the simulator stream.

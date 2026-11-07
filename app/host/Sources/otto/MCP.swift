@@ -29,7 +29,7 @@ final class MCPServer: @unchecked Sendable {
             config.requestCachePolicy = .reloadIgnoringLocalCacheData
             return URLSession(configuration: config)
         }
-        session = makeSession(timeout: 600) // sim_watch long-polls for up to 110 s
+        session = makeSession(timeout: 600) // otto_watch long-polls for up to 110 s
         probeSession = makeSession(timeout: 0.8)
     }
 
@@ -48,7 +48,7 @@ final class MCPServer: @unchecked Sendable {
                         send(JSONObject(["jsonrpc": .string("2.0"), "id": .null, "error": Self.error(-32700, "parse error")]))
                         continue
                     }
-                    // Not awaited: a long sim_watch must not hold up the next request.
+                    // Not awaited: a long otto_watch must not hold up the next request.
                     group.addTask { await self.handle(message) }
                 }
             }
@@ -118,10 +118,10 @@ final class MCPServer: @unchecked Sendable {
                     "serverInfo": .object(JSONObject(["name": .string("otto"), "version": .string(Config.version)])),
                     "instructions": .string(
                         "The user annotates a running iOS simulator in the browser (http://localhost:\(port)). "
-                            + "Fetch annotations with sim_get_pending, Read the screenshot paths to see the UI, find the SwiftUI/UIKit code, fix it, then sim_resolve."
+                            + "Fetch annotations with otto_get_pending, Read the screenshot paths to see the UI, find the SwiftUI/UIKit code, fix it, then otto_resolve."
                             + (claude
                                 ? " With channels on, each annotation the user sends also arrives on its own as a <channel source=\"otto\" annotation_id=\"…\"> event: "
-                                    + "call sim_acknowledge with that id before starting, and if it says another session has it, leave it."
+                                    + "call otto_acknowledge with that id before starting, and if it says another session has it, leave it."
                                 : "")
                     ),
                 ])))
@@ -176,7 +176,7 @@ final class MCPServer: @unchecked Sendable {
     /// into the conversation as a channel event, so even an idle session
     /// starts on it. A session without channels drops the event, and Claude
     /// Code can't tell this server which kind it is, so nothing is claimed
-    /// here: the annotation stays pending, for sim_watch or another session,
+    /// here: the annotation stays pending, for otto_watch or another session,
     /// until one acknowledges it (only one can). Annotations pending when the
     /// session starts are pushed too. Doesn't start the host: when it's not
     /// running, this waits for it.
@@ -207,9 +207,9 @@ final class MCPServer: @unchecked Sendable {
                     "method": .string("notifications/claude/channel"),
                     "params": .object(JSONObject([
                         "content": .string(
-                            "The user sent this from the iOS simulator. First call sim_acknowledge with id \(id); if it says another session has it, leave it. "
-                                + "Then Read the screenshots to see the UI, find the SwiftUI or UIKit code, fix it, and sim_resolve with a one-line summary "
-                                + "(or sim_reply to ask the user something).\n\n" + Format.toMarkdown(a)
+                            "The user sent this from the iOS simulator. First call otto_acknowledge with id \(id); if it says another session has it, leave it. "
+                                + "Then Read the screenshots to see the UI, find the SwiftUI or UIKit code, fix it, and otto_resolve with a one-line summary "
+                                + "(or otto_reply to ask the user something).\n\n" + Format.toMarkdown(a)
                         ),
                         "meta": .object(JSONObject(["annotation_id": .string(id)])),
                     ])),
@@ -232,17 +232,17 @@ final class MCPServer: @unchecked Sendable {
 
     static let tools: [Tool] = [
         Tool(
-            name: "sim_get_pending",
+            name: "otto_get_pending",
             description: "List pending UI annotations the user drew on the iOS simulator, with element info and screenshot paths.",
             properties: JSONObject(), required: []
         ),
         Tool(
-            name: "sim_get_all",
+            name: "otto_get_all",
             description: "List every annotation, including acknowledged, resolved and dismissed ones.",
             properties: JSONObject(), required: []
         ),
         Tool(
-            name: "sim_watch",
+            name: "otto_watch",
             description: "Wait until the user submits at least one annotation, then return the pending list. Use in a loop for hands-free mode.",
             properties: JSONObject([
                 "timeout_seconds": .object(JSONObject(["type": .string("number"), "description": .string("Max wait, default 100, max 110")])),
@@ -250,22 +250,22 @@ final class MCPServer: @unchecked Sendable {
             required: []
         ),
         Tool(
-            name: "sim_acknowledge",
+            name: "otto_acknowledge",
             description: "Mark an annotation as being worked on. The user sees this in the browser.",
             properties: JSONObject(["id": idArg]), required: ["id"]
         ),
         Tool(
-            name: "sim_resolve",
+            name: "otto_resolve",
             description: "Mark an annotation as fixed, with a one-line summary of the change.",
             properties: JSONObject(["id": idArg, "summary": stringArg]), required: ["id", "summary"]
         ),
         Tool(
-            name: "sim_dismiss",
+            name: "otto_dismiss",
             description: "Decline an annotation, with the reason.",
             properties: JSONObject(["id": idArg, "reason": stringArg]), required: ["id", "reason"]
         ),
         Tool(
-            name: "sim_reply",
+            name: "otto_reply",
             description: "Post a message on an annotation, e.g. a question for the user.",
             properties: JSONObject(["id": idArg, "message": stringArg]), required: ["id", "message"]
         ),
@@ -274,24 +274,24 @@ final class MCPServer: @unchecked Sendable {
     private func call(_ name: String, _ a: JSON) async throws -> String {
         let id = JS.string(a["id"])
         switch name {
-        case "sim_get_pending":
+        case "otto_get_pending":
             return render(try await request("/api/annotations?status=pending"), empty: "No pending annotations.")
-        case "sim_get_all":
+        case "otto_get_all":
             return render(try await request("/api/annotations"), empty: "No annotations yet.")
-        case "sim_watch":
+        case "otto_watch":
             let timeout = JS.string(a["timeout_seconds"].flatMap { $0.isNull ? nil : $0 } ?? .number(100))
-            return render(try await request("/api/wait?timeout=\(timeout)"), empty: "Nothing new yet; call sim_watch again to keep waiting.")
-        case "sim_acknowledge":
+            return render(try await request("/api/wait?timeout=\(timeout)"), empty: "Nothing new yet; call otto_watch again to keep waiting.")
+        case "otto_acknowledge":
             // As this session: if another one already took it on, this throws and says so.
             try await patch(id, JSONObject(["status": .string("acknowledged"), "by": .string(sessionTag)]))
             return "Acknowledged \(id)."
-        case "sim_resolve":
+        case "otto_resolve":
             try await patch(id, JSONObject(["status": .string("resolved"), "resolution": a["summary"]]))
             return "Resolved \(id)."
-        case "sim_dismiss":
+        case "otto_dismiss":
             try await patch(id, JSONObject(["status": .string("dismissed"), "resolution": a["reason"]]))
             return "Dismissed \(id)."
-        case "sim_reply":
+        case "otto_reply":
             try await patch(id, JSONObject(["reply": .object(JSONObject(["from": .string("agent"), "message": a["message"]]))]))
             return "Replied on \(id)."
         default:

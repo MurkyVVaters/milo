@@ -24,7 +24,7 @@ public struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     NextUpCard(show: tonight[0])
-                        .simTag()
+                        .ottoTag()
 
                     Text("Later tonight")
                         .font(.headline)
@@ -32,11 +32,11 @@ public struct ContentView: View {
 
                     ForEach(tonight.dropFirst()) { show in
                         ShowRow(show: show)
-                            .simTag()
+                            .ottoTag()
                     }
 
                     VenueTips()
-                        .simTag()
+                        .ottoTag()
                 }
                 .padding(.horizontal, 20)
             }

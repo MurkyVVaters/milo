@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Debug-only bridge between a running app and otto.
 ///
-/// Call `.otto()` on your root view and `.simTag()` on the views
+/// Call `.otto()` on your root view and `.ottoTag()` on the views
 /// you want to be selectable by name. In Release builds both are no-ops.
 public enum Otto {
     public static let defaultPort: UInt16 = 38471
@@ -33,9 +33,9 @@ public extension View {
 
     /// Makes this view selectable in otto under its type name,
     /// with the file and line it was created on (Debug only).
-    func simTag(_ name: String? = nil, fileID: String = #fileID, line: Int = #line) -> some View {
+    func ottoTag(_ name: String? = nil, fileID: String = #fileID, line: Int = #line) -> some View {
         #if DEBUG
-        modifier(SimTagModifier(name: name ?? typeName(Self.self), file: fileID, line: line))
+        modifier(OttoTagModifier(name: name ?? typeName(Self.self), file: fileID, line: line))
         #else
         self
         #endif
@@ -56,7 +56,7 @@ public extension UIView {
     /// with the file and line where it was tagged (Debug only).
     @MainActor
     @discardableResult
-    func simTag(_ name: String? = nil, fileID: String = #fileID, line: Int = #line) -> Self {
+    func ottoTag(_ name: String? = nil, fileID: String = #fileID, line: Int = #line) -> Self {
         #if DEBUG
         TagRegistry.shared.tag(self, name: name ?? typeName(type(of: self)), file: fileID, line: line)
         #endif

@@ -20,8 +20,8 @@
     {
       "id": 3,
       "name": "watch-no-sdk-interpolated",
-      "prompt": "Watch for my simulator annotations and handle them as they come in. (sim_watch returns 95ac1ac9, no SDK: the label 'Sydney Opera House · 8:00 PM' is built by interpolation.)",
-      "expected_output": "Finds NextUpCard's interpolated Text, splits the time onto its own line a little bolder, builds, resolves, then calls sim_watch again.",
+      "prompt": "Watch for my simulator annotations and handle them as they come in. (otto_watch returns 95ac1ac9, no SDK: the label 'Sydney Opera House · 8:00 PM' is built by interpolation.)",
+      "expected_output": "Finds NextUpCard's interpolated Text, splits the time onto its own line a little bolder, builds, resolves, then calls otto_watch again.",
       "files": [],
       "fixture": "assets/examples/DemoApp with the SDK removed"
     }

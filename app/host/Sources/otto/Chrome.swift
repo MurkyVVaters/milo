@@ -1,7 +1,8 @@
+// Modified for Otto.
 import CoreGraphics
 import Foundation
 import ImageIO
-import SimBridge
+import OttoBridge
 
 // Device chrome (the bezel and hardware buttons) the way Xcode's Device Hub
 // and Simulator find it: simulator → device type → profile.plist's

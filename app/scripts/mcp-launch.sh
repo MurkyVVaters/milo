@@ -8,17 +8,15 @@
 # A build of your own (OTTO_BIN) wins. Then this version: already
 # downloaded, or installed (Homebrew, PATH). Then it's downloaded from the
 # GitHub release, checked against the release's .sha256, and unpacked into
-# ~/Library/Caches/otto. Offline, any installed version will do.
+# ~/Library/Caches/otto. Installed binaries must match this version.
 v=VERSION
 [ -n "$OTTO_BIN" ] && exec "$OTTO_BIN" mcp
 cache="$HOME/Library/Caches/otto/release/$v"
 own="$cache/otto-$v/bin/otto"
 [ -x "$own" ] && exec "$own" mcp
-found=
 for b in "$(command -v otto 2>/dev/null)" /opt/homebrew/bin/otto /usr/local/bin/otto; do
   [ -n "$b" ] && [ -x "$b" ] || continue
   [ "$("$b" version 2>/dev/null)" = "$v" ] && exec "$b" mcp
-  [ -n "$found" ] || found=$b
 done
 base=$OTTO_RELEASES
 [ -n "$base" ] || base=https://github.com/MurkyVVaters/otto/releases/download
@@ -32,6 +30,5 @@ if mkdir -p "$cache" &&
   mv "$part/otto-$v" "$cache/" 2>/dev/null; [ -x "$own" ]; then
   exec "$own" mcp
 fi
-[ -n "$found" ] && exec "$found" mcp
-echo "otto $v couldn't be downloaded, and none is installed: build this repository and set OTTO_BIN to its executable" >&2
+echo "otto $v isn't installed and couldn't be downloaded: build this repository and set OTTO_BIN to its executable" >&2
 exit 1

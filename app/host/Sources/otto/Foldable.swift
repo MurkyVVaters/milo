@@ -1,6 +1,6 @@
 // Modified for Otto.
 import Foundation
-import SimBridge
+import OttoBridge
 
 // A device with more than one integrated panel: iPhone Duo (Xcode 27.1,
 // iOS 27.1), whose cover is lit while it's folded and whose larger panel is

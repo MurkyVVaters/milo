@@ -5,7 +5,7 @@
       "id": 1,
       "name": "sdk-add-spm-package-layout",
       "prompt": "Add the OttoPlus SDK (https://github.com/MurkyVVaters/otto) to this app so the annotations I draw come with file and line numbers. Tag the views I'd actually point at.",
-      "expected_output": "URL dependency and product added to the feature package's target, .otto() on the root view, .simTag() directly on NextUpCard, ShowRow, VenueTips (and the UIKit ticket views), builds, tags show their type names in the snapshot.",
+      "expected_output": "URL dependency and product added to the feature package's target, .otto() on the root view, .ottoTag() directly on NextUpCard, ShowRow, VenueTips (and the UIKit ticket views), builds, tags show their type names in the snapshot.",
       "files": [],
       "fixture": "assets/examples/DemoApp with the SDK removed"
     },
