@@ -19,7 +19,7 @@
     "mcp"
   ],
   "displayName": "Otto",
-  "logo": "./app/web/public/icon.svg",
+  "logo": "./app/web/public/icon.png",
   "skills": "./skills/",
   "mcpServers": "./.cursor-plugin/mcp.json"
 }

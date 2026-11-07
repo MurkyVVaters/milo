@@ -81,7 +81,7 @@
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
-    <img class="brand-icon" src="/icon.svg" alt="" width="24" height="24">
+    <img class="brand-icon" src="/icon.png" alt="" width="24" height="24">
     <span class="brand">Otto</span>
     <div class="pill bar-pill" role="group" aria-label="Simulators">
       <button class="icon-btn" title="New simulator" aria-label="New simulator" onclick={() => (creating = true)}>{@html icon('plus')}</button>
