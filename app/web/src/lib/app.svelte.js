@@ -719,6 +719,7 @@ const combo = (e) => [e.ctrlKey && 'ctrl', e.altKey && 'alt', e.shiftKey && 'shi
 const SHORTCUTS = {
   'meta+KeyS': () => saveScreenshot(),                      // File ▸ Save Screen
   'meta+KeyR': () => toggleRecording(),                     // File ▸ Record Screen
+  'ctrl+meta+KeyR': () => { if (ui.running) toggleReviewPanel(); }, // Animation Review
   'ctrl+meta+KeyC': () => copyScreen(),                     // Edit ▸ Copy Screen
   'shift+meta+KeyH': () => pressHome(),                     // I/O ▸ Home
   'ctrl+shift+meta+KeyH': () => pressAppSwitcher(),         // I/O ▸ App Switcher

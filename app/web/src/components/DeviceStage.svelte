@@ -8,6 +8,7 @@
   import { layerSize, layerStyle, facing } from '../lib/screen3d.js';
   import SideButton from './SideButton.svelte';
   import AnimationReview from './AnimationReview.svelte';
+  import TooltipButton from './TooltipButton.svelte';
 
   // The canvas and overlay stay mounted for the page's lifetime: the stream
   // and annotation code hold on to them.
@@ -300,17 +301,18 @@
     {#if ui.review.open}<AnimationReview />{/if}
     <div class="bottom-row">
       <div class="pill" role="group" aria-label="Device">
-        <button class="icon-btn" title="Home" disabled={ui.review.state === 'review' || ui.review.state === 'finishing'} data-icon="home" onclick={pressHome}>{@html icon('home')}</button>
-        <button class="icon-btn" title="Save screenshot" data-icon="screenshot" onclick={saveScreenshot}>{@html icon('screenshot')}</button>
-        <button
-          class="icon-btn"
-          class:recording={ui.recording}
-          title={ui.recording ? 'Stop recording and save the video' : 'Record the screen'}
+        <TooltipButton label="Home" keys="shift+meta+KeyH" placement="top" disabled={ui.review.state === 'review' || ui.review.state === 'finishing'} data-icon="home" onclick={pressHome}>{@html icon('home')}</TooltipButton>
+        <TooltipButton label="Save screenshot" keys="meta+KeyS" placement="top" data-icon="screenshot" onclick={saveScreenshot}>{@html icon('screenshot')}</TooltipButton>
+        <TooltipButton
+          class={ui.recording ? 'icon-btn recording' : 'icon-btn'}
+          label={ui.recording ? 'Stop recording and save' : 'Record screen'}
+          keys="meta+KeyR"
+          placement="top"
           data-icon="record"
           disabled={ui.review.state !== 'live'}
           onclick={toggleRecording}
-        >{@html icon(ui.recording ? 'record-stop' : 'record')}</button>
-        <button class="icon-btn" class:on={ui.review.open} title="Animation review" aria-pressed={ui.review.open} onclick={toggleReviewPanel}>{@html icon('film')}</button>
+        >{@html icon(ui.recording ? 'record-stop' : 'record')}</TooltipButton>
+        <TooltipButton class={ui.review.open ? 'icon-btn on' : 'icon-btn'} label={ui.review.open ? 'Close animation review' : 'Animation review'} keys="ctrl+meta+KeyR" placement="top" aria-pressed={ui.review.open} onclick={toggleReviewPanel}>{@html icon('film')}</TooltipButton>
       </div>
       {#if isFoldable()}
         <!-- Device Hub's pose picker and hinge slider; the pose nearest the hinge is lit. -->
@@ -348,7 +350,7 @@
         </div>
       {/if}
       <div class="pill" role="group" aria-label="Rotate">
-        <button class="icon-btn" title="Rotate" disabled={ui.review.state !== 'live'} data-icon="rotate" onclick={rotate}>{@html icon('rotate')}</button>
+        <TooltipButton label="Rotate right" keys="meta+ArrowRight" placement="top" disabled={ui.review.state !== 'live'} data-icon="rotate" onclick={rotate}>{@html icon('rotate')}</TooltipButton>
       </div>
     </div>
   </footer>

@@ -1,5 +1,6 @@
 <script>
   import { icon as glyph } from '../lib/icons.js';
+  import TooltipButton from './TooltipButton.svelte';
 
   // An icon button that opens a menu under it; outside clicks and Esc close it.
   // The menu goes in the top layer, above everything on the page however it
@@ -33,12 +34,18 @@
 />
 
 <div class="popover-anchor" bind:this={root}>
-  <button bind:this={button} class="icon-btn" class:open {title} aria-label={title} aria-expanded={open} {disabled} onclick={toggle}>
-    {@html glyph(icon)}
-  </button>
+  <span class="popover-trigger" bind:this={button}>
+    <TooltipButton class={open ? 'icon-btn open' : 'icon-btn'} label={title} aria-expanded={open} {disabled} onclick={toggle}>
+      {@html glyph(icon)}
+    </TooltipButton>
+  </span>
   {#if open}
     <div class="popover" popover="manual" bind:this={panel} style={place} role="dialog" aria-label={title}>
       {@render children(close)}
     </div>
   {/if}
 </div>
+
+<style>
+  .popover-trigger { display: flex; }
+</style>

@@ -7,6 +7,7 @@
   import { icon } from '../lib/icons.js';
   import Popover from './Popover.svelte';
   import Menu from './Menu.svelte';
+  import TooltipButton from './TooltipButton.svelte';
 
   const status = $derived(ui.flash ?? ui.status);
 
@@ -29,7 +30,7 @@
         { label: 'Remove Resolved Annotations', icon: 'clear-done', run: clearDone },
       ],
       [
-        { label: 'Animation Review', icon: 'film', run: toggleReviewPanel, disabled: off },
+        { label: 'Animation Review', icon: 'film', run: toggleReviewPanel, disabled: off, keys: 'ctrl+meta+KeyR' },
         { label: 'Save Screen', icon: 'screenshot', run: saveScreenshot, disabled: off, keys: 'meta+KeyS' },
         { label: 'Copy Screen', icon: 'copy', run: copyScreen, disabled: off, keys: 'ctrl+meta+KeyC' },
         { label: ui.recording ? 'Stop Recording' : 'Record Screen', icon: 'record', run: toggleRecording, disabled: off || ui.review.state !== 'live', keys: 'meta+KeyR' },
@@ -84,13 +85,12 @@
   <!-- The sidebar button stays in the canvas, before the title, whether the
        sidebar is in or out. -->
   <div class="pill sidebar-toggle">
-    <button
+    <TooltipButton
       id="toggle-sidebar"
       class="icon-btn"
-      title={ui.panels.sidebar ? 'Hide the device list' : 'Show the device list'}
-      aria-label={ui.panels.sidebar ? 'Hide the device list' : 'Show the device list'}
+      label={ui.panels.sidebar ? 'Hide the device list' : 'Show the device list'}
       onclick={() => togglePanel('sidebar')}
-    >{@html icon('sidebar')}</button>
+    >{@html icon('sidebar')}</TooltipButton>
   </div>
   <div class="title">
     <div class="title-name">{ui.simName}</div>
@@ -100,46 +100,43 @@
   </div>
   <div class="toolbar">
     <div class="pill segmented" role="group" aria-label="Mode">
-      <button
+      <TooltipButton
         id="mode-interact"
-        class="icon-btn"
-        class:on={ui.mode === 'interact' && ui.running}
-        title="Interact: use the app (I)"
+        class={ui.mode === 'interact' && ui.running ? 'icon-btn on' : 'icon-btn'}
+        label="Interact" keys="KeyI"
         data-icon="pointer"
         disabled={!ui.running}
         onclick={() => setMode('interact')}
-      >{@html icon('pointer')}</button>
-      <button
+      >{@html icon('pointer')}</TooltipButton>
+      <TooltipButton
         id="mode-annotate"
-        class="icon-btn"
-        class:on={ui.mode === 'annotate'}
-        title={ui.mode === 'annotate' ? 'Leave Design Mode (⇧⌘D)' : 'Design Mode: freeze the screen and mark things up (⇧⌘D)'}
+        class={ui.mode === 'annotate' ? 'icon-btn on' : 'icon-btn'}
+        label={ui.mode === 'annotate' ? 'Leave Design Mode' : 'Design Mode'} keys="shift+meta+KeyD"
         aria-pressed={ui.mode === 'annotate'}
         data-icon="annotate"
         disabled={!ui.running}
         onclick={() => setMode(ui.mode === 'annotate' ? 'interact' : 'annotate')}
-      >{@html icon('annotate')}<span class="mode-label"><span>Design</span></span></button>
+      >{@html icon('annotate')}<span class="mode-label"><span>Design</span></span></TooltipButton>
     </div>
     <div class="pill" role="group" aria-label="Zoom">
-      <button id="zoom-out" class="icon-btn" title="Zoom out (⌘−)" data-icon="zoom-out" onclick={zoomOut}>{@html icon('zoom-out')}</button>
-      <button
+      <TooltipButton id="zoom-out" label="Zoom out" keys="meta+Minus" data-icon="zoom-out" onclick={zoomOut}>{@html icon('zoom-out')}</TooltipButton>
+      <TooltipButton
         id="zoom-fit"
-        class="icon-btn"
-        class:on={isFit() && ui.running}
-        title="Fit to window (⌘9)"
+        class={isFit() && ui.running ? 'icon-btn on' : 'icon-btn'}
+        label="Fit to window" keys="meta+Digit4"
         data-icon="zoom-fit"
         onclick={() => setZoom('fit')}
-      >{@html icon('zoom-fit')}</button>
-      <button id="zoom-in" class="icon-btn" title="Zoom in (⌘+)" data-icon="zoom-in" onclick={zoomIn}>{@html icon('zoom-in')}</button>
+      >{@html icon('zoom-fit')}</TooltipButton>
+      <TooltipButton id="zoom-in" label="Zoom in" keys="meta+Equal" data-icon="zoom-in" onclick={zoomIn}>{@html icon('zoom-in')}</TooltipButton>
     </div>
     <div class="pill" role="group" aria-label="View">
-      <button
+      <TooltipButton
         id="toggle-focus"
         class="icon-btn"
-        title={ui.panels.sidebar || ui.panels.inspector ? 'Show the device alone' : 'Show the device list and inspector'}
+        label={ui.panels.sidebar || ui.panels.inspector ? 'Show the device alone' : 'Show the device list and inspector'}
         data-icon="focus"
         onclick={toggleFocus}
-      >{@html icon('focus')}</button>
+      >{@html icon('focus')}</TooltipButton>
       <Popover icon="more" title="More">
         {#snippet children(close)}<Menu groups={menu} {close} />{/snippet}
       </Popover>
