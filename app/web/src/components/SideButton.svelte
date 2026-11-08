@@ -38,6 +38,7 @@
 <button
   class="side-button"
   class:on-top={button.onTop}
+  disabled={ui.review.state === 'review' || ui.review.state === 'finishing'}
   title={button.name.replace('-', ' ')}
   style:left="{frame.x * k}px"
   style:top="{frame.y * k}px"

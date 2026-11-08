@@ -2,7 +2,7 @@
   import {
     ui, setMode, setZoom, zoomIn, zoomOut, isFit, togglePanel, toggleFocus,
     copyPending, clearDone, saveScreenshot, pressButton, pressAppSwitcher, pressHome,
-    startDevice, shutdownDevice, restartDevice, copyScreen, toggleRecording, rotateBy, feature,
+    startDevice, shutdownDevice, restartDevice, copyScreen, toggleRecording, toggleReviewPanel, rotateBy, feature,
   } from '../lib/app.svelte.js';
   import { icon } from '../lib/icons.js';
   import Popover from './Popover.svelte';
@@ -29,9 +29,10 @@
         { label: 'Remove Resolved Annotations', icon: 'clear-done', run: clearDone },
       ],
       [
+        { label: 'Animation Review', icon: 'film', run: toggleReviewPanel, disabled: off },
         { label: 'Save Screen', icon: 'screenshot', run: saveScreenshot, disabled: off, keys: 'meta+KeyS' },
         { label: 'Copy Screen', icon: 'copy', run: copyScreen, disabled: off, keys: 'ctrl+meta+KeyC' },
-        { label: ui.recording ? 'Stop Recording' : 'Record Screen', icon: 'record', run: toggleRecording, disabled: off, keys: 'meta+KeyR' },
+        { label: ui.recording ? 'Stop Recording' : 'Record Screen', icon: 'record', run: toggleRecording, disabled: off || ui.review.state !== 'live', keys: 'meta+KeyR' },
       ],
       [
         {

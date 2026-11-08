@@ -2,6 +2,11 @@
 // Usage: <span data-icon="search"></span>, then hydrateIcons().
 
 const paths = {
+  pause: '<path d="M8 5v14M16 5v14" stroke-width="3.5"/>',
+  'frame-back': '<path d="M6 5v14M18 5.5 8 12l10 6.5z"/>',
+  'frame-forward': '<path d="M18 5v14M6 5.5 16 12 6 18.5z"/>',
+  loop: '<path d="M3 11V9a3 3 0 0 1 3-3h15M17 2l4 4-4 4M21 13v2a3 3 0 0 1-3 3H3M7 22l-4-4 4-4"/>',
+  film: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4M10 9l5 3-5 3z"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   'arrow-up': '<path d="M12 19.5V5M5.5 11.5 12 5l6.5 6.5"/>',
   // A device row's context menu: start, and open in a new tab or window.

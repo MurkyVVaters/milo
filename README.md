@@ -43,6 +43,21 @@ Each annotation includes element details, search hints, a screenshot of the full
 
 The controls below the device include screenshots, MP4 recording, Home, and rotation. Use **⌘S** for a screenshot and **⌘R** to toggle recording.
 
+## Review animation captures
+
+Choose **Animation Review** (the film icon beside Record Screen), then **Start Capture**.
+Use the simulator and choose **Stop and Review**. The panel plays or pauses the capture,
+steps through its actual captured frames, scrubs by timestamp, changes playback speed,
+and loops. Captures stay in this browser tab, up to 30 seconds or 64 MiB; capture stops
+when either limit is reached. Frame rate and resolution follow the simulator stream.
+
+Choose **Annotate this frame** to mark up a captured image. Notes include its timestamp
+and frame number; selection uses pixels, since the live accessibility tree and SDK
+source locations may no longer match that moment. **Return to Live** resumes interaction;
+**Review Capture** reopens the last capture, and **Capture Again** replaces it.
+Closing the panel or changing devices releases the capture. This first version uses
+the flat device view. Playback reviews recorded images while the simulator keeps running.
+
 ## Connect your coding agent
 
 Register the built executable as a stdio MCP server. Replace the example path with the absolute path to your checkout.

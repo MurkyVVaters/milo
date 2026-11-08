@@ -1,12 +1,13 @@
 <script>
   import { onMount, untrack } from 'svelte';
   import {
-    ui, MARGIN, ROTATION, attachStage, onStageResize, startDevice, pressHome, reclaimInput, saveScreenshot, toggleRecording, rotate, isFoldable, POSES, currentPose, setPose, slideHinge, hingeAngle, is3D, toggle3D, pressButton, maps3D, attachScreen3D, syncScreen3D, ACTIVE_FACING,
+    ui, MARGIN, ROTATION, attachStage, onStageResize, startDevice, pressHome, reclaimInput, saveScreenshot, toggleRecording, toggleReviewPanel, rotate, isFoldable, POSES, currentPose, setPose, slideHinge, hingeAngle, is3D, toggle3D, pressButton, maps3D, attachScreen3D, syncScreen3D, ACTIVE_FACING,
     onPointerDown, onPointerMove, onPointerUp, onWheel, onScreenKey, editMark,
   } from '../lib/app.svelte.js';
   import { icon } from '../lib/icons.js';
   import { layerSize, layerStyle, facing } from '../lib/screen3d.js';
   import SideButton from './SideButton.svelte';
+  import AnimationReview from './AnimationReview.svelte';
 
   // The canvas and overlay stay mounted for the page's lifetime: the stream
   // and annotation code hold on to them.
@@ -296,24 +297,27 @@
         </button>
       </div>
     {/if}
+    {#if ui.review.open}<AnimationReview />{/if}
     <div class="bottom-row">
       <div class="pill" role="group" aria-label="Device">
-        <button class="icon-btn" title="Home" data-icon="home" onclick={pressHome}>{@html icon('home')}</button>
+        <button class="icon-btn" title="Home" disabled={ui.review.state === 'review' || ui.review.state === 'finishing'} data-icon="home" onclick={pressHome}>{@html icon('home')}</button>
         <button class="icon-btn" title="Save screenshot" data-icon="screenshot" onclick={saveScreenshot}>{@html icon('screenshot')}</button>
         <button
           class="icon-btn"
           class:recording={ui.recording}
           title={ui.recording ? 'Stop recording and save the video' : 'Record the screen'}
           data-icon="record"
+          disabled={ui.review.state !== 'live'}
           onclick={toggleRecording}
         >{@html icon(ui.recording ? 'record-stop' : 'record')}</button>
+        <button class="icon-btn" class:on={ui.review.open} title="Animation review" aria-pressed={ui.review.open} onclick={toggleReviewPanel}>{@html icon('film')}</button>
       </div>
       {#if isFoldable()}
         <!-- Device Hub's pose picker and hinge slider; the pose nearest the hinge is lit. -->
         <div class="pill pose-picker" role="group" aria-label="Pose">
           {#each POSES as pose (pose.name)}
             <button
-              class="icon-btn pose"
+              class="icon-btn pose" disabled={ui.review.state !== 'live'}
               class:on={currentPose().name === pose.name}
               title={pose.label}
               aria-pressed={currentPose().name === pose.name}
@@ -327,10 +331,10 @@
             title={ui.prefer3d ? 'Show Flat' : 'Show in 3D'}
             aria-pressed={ui.prefer3d}
             data-icon="view-3d"
-            onclick={toggle3D}
+            disabled={ui.review.state !== 'live'} onclick={toggle3D}
           >{@html icon('view-3d')}</button>
           <input
-            class="hinge-slider"
+            class="hinge-slider" disabled={ui.review.state !== 'live'}
             type="range"
             min="0"
             max="180"
@@ -344,7 +348,7 @@
         </div>
       {/if}
       <div class="pill" role="group" aria-label="Rotate">
-        <button class="icon-btn" title="Rotate" data-icon="rotate" onclick={rotate}>{@html icon('rotate')}</button>
+        <button class="icon-btn" title="Rotate" disabled={ui.review.state !== 'live'} data-icon="rotate" onclick={rotate}>{@html icon('rotate')}</button>
       </div>
     </div>
   </footer>

@@ -4,6 +4,7 @@
 // hover, drag) and is never rendered directly.
 
 import { tick } from 'svelte';
+import { FrameCapture, CAPTURE_SECONDS, CAPTURE_BYTES, frameAt, reviewTime } from './review.js';
 import { notify } from './notify.svelte.js';
 import { hitTest, describe, nodesInRect, isSpringBoard, isWidget } from './ax.js';
 import { sampler, warm, containerAround, containersAround, partsWithin } from './visual.js';
@@ -60,6 +61,7 @@ export const ui = $state({
   creating: null,  // { name, runtime } while a new simulator is being created, for its row
   reclaiming: false,
   recording: false,
+  review: { open: false, state: 'live', count: 0, index: 0, time: 0, duration: 0, playing: false, speed: 1, loop: false },
   hinge: null,        // a foldable's hinge, in degrees, as the host last read it
   hingeDrag: null,    // the hinge slider's angle while it's dragged (see slideHinge)
   posing: false,      // a pose is being played (see setPose)
@@ -234,6 +236,7 @@ function connect(udid) {
 }
 
 function stopStream() {
+  if (ui.review.state === 'capturing') void stopReviewCapture();
   const ws = rt.ws;
   rt.ws = null;
   clearInterval(rt.watchdog);
@@ -249,14 +252,16 @@ function stopStream() {
 
 // Paints the newest decoded frame once per display refresh; older ones are
 // dropped, as in baguette's StreamSession.
-function paintLoop() {
+function paintLoop(now) {
+  tickReview(now);
   const frame = rt.pending;
   if (frame) {
     rt.pending = null;
     rt.frame?.close?.();
     rt.frame = frame;
     rt.counts.frames++;
-    if (!rt.frozen) {
+    if (ui.review.state === 'capturing') captureFrame(frame, now);
+    if (!rt.frozen && ui.review.state !== 'review') {
       if (!ui.live) {
         ui.live = true;
         setStatus(''); // streaming is the normal state; say nothing
@@ -426,6 +431,10 @@ function onProbe(result) {
 }
 
 export function send(msg) {
+  // A recorded picture must never send touches or hardware keys to the live app.
+  const deviceInput = /^(touch|tap$|swipe$|scroll$|button$|key$|type$|paste$|orientation$|hinge$|pose$)/.test(msg.type);
+  if (deviceInput && (ui.review.state === 'review' || ui.review.state === 'finishing')) return;
+  if (ui.review.state === 'capturing' && ['orientation', 'hinge', 'pose'].includes(msg.type)) return;
   if (rt.ws?.readyState === WebSocket.OPEN) rt.ws.send(JSON.stringify(msg));
 }
 
@@ -630,6 +639,7 @@ export function onPointerDown(e) {
   const { inside, ...point } = inputPoint(e);
   if (!inside) return; // the 3D book's body or the backdrop
   rt.touching = true;
+  rt.touchPoint = point;
   rt.overlay.setPointerCapture(e.pointerId);
   send({ type: 'touch1-down', ...point });
 }
@@ -638,6 +648,7 @@ export function onPointerMove(e) {
   if (ui.mode === 'annotate') return annotateMove(e);
   if (rt.touching) {
     const { inside, ...point } = inputPoint(e);
+    rt.touchPoint = point;
     send({ type: 'touch1-move', ...point });
   }
 }
@@ -679,6 +690,15 @@ function forBrowser(e) {
 }
 
 export function onScreenKey(e) {
+  if (ui.review.state === 'review' && ui.mode === 'interact' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    if (e.code === 'Space' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.code === 'Space') toggleReviewPlayback();
+      else stepReview(e.code === 'ArrowLeft' ? -1 : 1);
+    }
+    return;
+  }
   if (ui.mode !== 'interact' || SHORTCUTS[combo(e)] || forBrowser(e)) return;
   const mods = ['shift', 'control', 'option', 'command'].filter((m, i) => [e.shiftKey, e.ctrlKey, e.altKey, e.metaKey][i]);
   if (e.metaKey && e.key === 'v') {
@@ -731,6 +751,14 @@ export function onWindowKey(e) {
     return;
   }
   if (e.metaKey) return;
+  if (ui.review.state === 'review' && ui.mode !== 'annotate' && !e.target.closest?.('input, textarea, select, button')) {
+    if (['Space', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+      e.preventDefault();
+      if (e.code === 'Space') toggleReviewPlayback();
+      else stepReview(e.code === 'ArrowLeft' ? -1 : 1);
+      return;
+    }
+  }
   if (e.key === 'Escape' && ui.mode === 'annotate') {
     // A selection goes first, then Design Mode.
     e.preventDefault();
@@ -832,7 +860,7 @@ export async function copyScreen() {
 }
 
 function screenPNG() {
-  const frame = rt.frozen?.bitmap ?? rt.frame;
+  const frame = rt.frozen?.bitmap ?? (ui.review.state === 'review' ? reviewBitmap : rt.frame);
   if (!frame) return Promise.resolve(null);
   const { width, height } = frameSize(frame);
   const out = new OffscreenCanvas(width, height);
@@ -874,6 +902,7 @@ const RECORDING_TYPES = ['video/mp4;codecs=avc1.640033', 'video/mp4;codecs=avc1.
 let recorder = null;
 
 export function toggleRecording() {
+  if (ui.review.state !== 'live') return flashStatus('Return to Live to record a video');
   if (recorder) return recorder.stop();
   if (!ui.running || !rt.canvas || typeof MediaRecorder === 'undefined') return;
   const type = RECORDING_TYPES.find((t) => MediaRecorder.isTypeSupported(t)) ?? '';
@@ -894,6 +923,217 @@ export function toggleRecording() {
   ui.recording = true;
 }
 
+// ---------- animation review ----------
+
+let reviewCapture = null;
+let reviewFrames = [];
+let reviewBitmap = null;
+let reviewPaintedIndex = -1;
+let reviewDecode = null;
+let reviewVersion = 0;
+let reviewClock = null;
+let reviewTimer = null;
+
+export async function toggleReviewPanel() {
+  if (ui.review.open) {
+    await returnToLive();
+    clearReview();
+    ui.review.open = false;
+  } else {
+    ui.review.open = true;
+  }
+}
+
+function clearReview() {
+  cancelCapture();
+  reviewVersion++;
+  reviewFrames = [];
+  reviewBitmap?.close();
+  reviewBitmap = null;
+  reviewPaintedIndex = -1;
+  reviewClock = null;
+  Object.assign(ui.review, { state: 'live', playing: false, count: 0, index: 0, time: 0, duration: 0 });
+}
+
+function cancelCapture() {
+  clearTimeout(reviewTimer);
+  reviewCapture = null;
+  if (ui.review.state === 'capturing' || ui.review.state === 'finishing') ui.review.state = 'live';
+}
+
+export async function startReviewCapture() {
+  if (!ui.running || !rt.frame || ui.recording || ui.review.state === 'finishing') return;
+  // The first version captures the flat screen, so frame geometry stays stable.
+  if (is3D()) return flashStatus('Switch to the flat view to capture an animation');
+  await returnToLive();
+  await setMode('interact');
+  clearReview();
+  ui.review.open = true;
+  reviewCapture = new FrameCapture(performance.now());
+  ui.review.state = 'capturing';
+  captureFrame(rt.frame, reviewCapture.started);
+  reviewTimer = setTimeout(stopReviewCapture, CAPTURE_SECONDS * 1000);
+}
+
+function captureFrame(frame, now) {
+  const capture = reviewCapture;
+  if (!capture) return;
+  const elapsed = (now - capture.started) / 1000;
+  ui.review.time = Math.min(CAPTURE_SECONDS, elapsed);
+  ui.review.count = capture.frames.length;
+  if (elapsed >= CAPTURE_SECONDS || capture.full || capture.error || capture.bytes >= CAPTURE_BYTES) {
+    void stopReviewCapture();
+    return;
+  }
+  capture.add(frame, now);
+}
+
+export async function stopReviewCapture() {
+  const capture = reviewCapture;
+  if (!capture || ui.review.state !== 'capturing') return;
+  clearTimeout(reviewTimer);
+  if (rt.touching) {
+    send({ type: 'touch1-up', ...rt.touchPoint });
+    rt.touching = false;
+  }
+  ui.review.state = 'finishing';
+  await capture.pending;
+  if (reviewCapture !== capture) return;
+  reviewCapture = null;
+  reviewFrames = capture.frames;
+  Object.assign(ui.review, { state: 'review', count: reviewFrames.length, duration: reviewFrames.at(-1)?.time ?? 0, time: 0, index: 0, playing: false });
+  if (!reviewFrames.length) {
+    ui.review.state = 'live';
+    return flashStatus("Couldn't capture frames. Try again with the simulator connected.", 5000);
+  }
+  await renderReviewFrame();
+  if (capture.error) flashStatus('Capture stopped early; the available frames are ready to review', 5000);
+  else if (capture.full) flashStatus('Capture reached its memory limit; your frames are ready to review', 5000);
+}
+
+// Only one image decode runs at a time. A fast scrub drops obsolete requests.
+async function renderReviewFrame() {
+  if (reviewDecode) return reviewDecode;
+  const version = reviewVersion;
+  reviewDecode = (async () => {
+    while (version === reviewVersion && ui.review.state === 'review' && reviewPaintedIndex !== ui.review.index) {
+      const index = ui.review.index;
+      const frame = reviewFrames[index];
+      if (!frame) break;
+      const bitmap = await createImageBitmap(frame.blob);
+      if (version !== reviewVersion || ui.review.state !== 'review' || index !== ui.review.index) {
+        bitmap.close();
+        continue;
+      }
+      reviewBitmap?.close();
+      reviewBitmap = bitmap;
+      reviewPaintedIndex = index;
+      if (!rt.frozen) paint(bitmap);
+    }
+  })().catch(() => {
+    ui.review.playing = false;
+    flashStatus("Couldn't display this captured frame. Try another frame.", 5000);
+  }).finally(() => { reviewDecode = null; });
+  return reviewDecode;
+}
+
+async function leaveReviewAnnotation() {
+  if (ui.mode !== 'annotate') return;
+  await setMode('interact');
+}
+
+export async function seekReview(time) {
+  if (ui.review.state !== 'review' || !reviewFrames.length) return;
+  ui.review.playing = false;
+  reviewClock = null;
+  await leaveReviewAnnotation();
+  ui.review.index = frameAt(reviewFrames, Math.min(ui.review.duration, Math.max(0, time)));
+  ui.review.time = reviewFrames[ui.review.index].time;
+  await renderReviewFrame();
+  if (reviewBitmap && !rt.frozen) paint(reviewBitmap);
+}
+
+export function stepReview(direction) {
+  const index = Math.min(reviewFrames.length - 1, Math.max(0, ui.review.index + direction));
+  return seekReview(reviewFrames[index]?.time ?? 0);
+}
+
+export async function toggleReviewPlayback(replay = false) {
+  if (ui.review.state !== 'review' || reviewFrames.length < 2) return;
+  const playing = !ui.review.playing;
+  await leaveReviewAnnotation();
+  if (replay || (playing && ui.review.index === reviewFrames.length - 1)) await seekReview(0);
+  reviewClock = null;
+  ui.review.playing = replay || playing;
+  if (reviewBitmap) paint(reviewBitmap);
+}
+
+export function setReviewSpeed(speed) {
+  if (![0.25, 0.5, 1, 2].includes(speed)) return;
+  ui.review.speed = speed;
+  reviewClock = null;
+}
+
+function tickReview(now) {
+  const r = ui.review;
+  if (!r.playing || r.state !== 'review' || rt.frozen) { reviewClock = null; return; }
+  const previous = reviewClock ?? now;
+  reviewClock = now;
+  let time = r.time + Math.max(0, now - previous) / 1000 * r.speed;
+  if (time >= r.duration) {
+    if (r.loop && r.duration > 0) time %= r.duration;
+    else { time = r.duration; r.playing = false; }
+  }
+  r.time = time;
+  r.index = frameAt(reviewFrames, time);
+  void renderReviewFrame();
+}
+
+export async function openReviewCapture() {
+  if (!reviewFrames.length) return;
+  await setMode('interact');
+  ui.review.state = 'review';
+  reviewPaintedIndex = -1;
+  await seekReview(ui.review.time);
+}
+
+export async function returnToLive() {
+  cancelCapture();
+  ui.review.playing = false;
+  // Leave the annotation first, so its owned bitmap is disposed separately.
+  if (rt.frozen?.reviewTime != null) await setMode('interact');
+  ui.review.state = 'live';
+  reviewVersion++;
+  // Let an obsolete decode dispose its bitmap before starting a new session.
+  await reviewDecode;
+  if (rt.frame) paint(rt.frame);
+  setStatus(ui.live ? '' : 'Connecting…');
+}
+
+export function annotateReviewFrame() {
+  if (ui.review.state === 'review') return setMode('annotate');
+}
+
+async function freezeReview() {
+  ui.review.playing = false;
+  await renderReviewFrame();
+  if (!reviewBitmap || reviewPaintedIndex !== ui.review.index || ui.mode !== 'annotate') return;
+  const bitmap = await createImageBitmap(reviewBitmap);
+  if (ui.mode !== 'annotate' || ui.review.state !== 'review') { bitmap.close(); return; }
+  const f = rt.frozen = {
+    bitmap, tree: null, sdk: null, sdkAvailable: null, marks: [],
+    points: { width: ui.chrome.screen.width, height: ui.chrome.screen.height },
+    turned: ui.orientation === 'portrait' ? null : ui.orientation,
+    reviewTime: reviewFrames[ui.review.index].time, reviewIndex: ui.review.index,
+  };
+  f.pixels = sampler(bitmap, f.points.width, f.points.height);
+  warm(f.pixels);
+  ui.frozen = true;
+  ui.sdkAvailable = false;
+  paint(bitmap);
+  setStatus(`Captured frame · ${reviewTime(f.reviewTime)} · draw an area to annotate`);
+}
+
 // ---------- rotation ----------
 
 /** Degrees the device turns on screen for each orientation (UIDeviceOrientation names). */
@@ -909,7 +1149,7 @@ export function rotate() {
 
 /** Turns the device a quarter: 1 clockwise (Rotate Right), -1 the other way. */
 export async function rotateBy(step) {
-  if (!ui.running) return;
+  if (!ui.running || ui.review.state !== 'live') return;
   await setMode('interact');
   ui.orientation = TURN_ORDER[(TURN_ORDER.indexOf(ui.orientation) + step + TURN_ORDER.length) % TURN_ORDER.length];
   send({ type: 'orientation', orientation: ui.orientation });
@@ -920,6 +1160,9 @@ export async function rotateBy(step) {
 // ---------- annotate mode ----------
 
 export async function setMode(mode) {
+  if (ui.review.state === 'finishing') return;
+  if (ui.review.state === 'capturing' && mode === 'annotate') await stopReviewCapture();
+  if (ui.review.state === 'review') ui.review.playing = false;
   if (mode === ui.mode) return;
   // Nothing to freeze yet: no live frame from a running device.
   if (mode === 'annotate' && (!rt.frame || !ui.chrome)) return;
@@ -938,7 +1181,8 @@ export async function setMode(mode) {
     await freeze();
   } else {
     thaw();
-    setStatus(ui.live ? '' : 'Connecting…');
+    if (ui.review.state === 'review' && reviewBitmap) paint(reviewBitmap);
+    setStatus(ui.review.state === 'review' ? 'Reviewing capture' : ui.live ? '' : 'Connecting…');
   }
   // The tree can take a while: a composer opened meanwhile keeps its focus.
   if (!ui.draft) rt.overlay?.focus();
@@ -950,6 +1194,7 @@ export async function setMode(mode) {
  * while those requests are out.
  */
 async function freeze() {
+  if (ui.review.state === 'review') return freezeReview();
   const was3D = is3D();
   const data = Promise.all([
     fetchTree(),
@@ -1063,6 +1308,7 @@ function applySdk() {
   if (!f) return;
   f.sdk = ui.sdkEnabled ? f.sdkAvailable : null;
   ui.sdkAvailable = !!f.sdkAvailable;
+  if (f.reviewTime != null) return;
   setStatus(!f.tree ? 'Frozen (no accessibility data)' : f.sdk ? 'Frozen · SDK' : f.sdkAvailable ? 'Frozen · pixels' : 'Frozen');
   // Recompute what's under the cursor with the new source.
   if (rt.hover) {
@@ -1397,6 +1643,8 @@ export async function deleteEditing() {
   });
 }
 
+const reviewComment = (frame, comment) => frame?.reviewTime == null ? comment : `[Animation review · ${reviewTime(frame.reviewTime)} · frame ${frame.reviewIndex + 1}]\n\n${comment}`;
+
 const samePicks = (a, b) => a.length === b.length && a.every((k, i) => sameRect(k.rect, b[i].rect));
 
 export async function submitComposer(comment) {
@@ -1410,7 +1658,7 @@ export async function submitComposer(comment) {
   // screenshots, replies and number.
   if (editing && samePicks(editing.picks, picks)) {
     if (comment === editing.comment) return;
-    const res = await fetch(`/api/annotations/${editing.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ comment }) }).catch(() => null);
+    const res = await fetch(`/api/annotations/${editing.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ comment: reviewComment(f, comment) }) }).catch(() => null);
     if (!res?.ok) return setStatus((await res?.json().catch(() => null))?.error || "Couldn't save the note");
     editing.comment = comment;
     return refresh();
@@ -1446,7 +1694,7 @@ export async function submitComposer(comment) {
 
   const body = {
     udid: ui.udid,
-    comment,
+    comment: reviewComment(f, comment),
     kind: draft.kind,
     label: draft.label,
     rect: r,
@@ -1602,6 +1850,7 @@ export const is3D = () => wants3D() && !!ui.scene && !!ui.box3d;
 
 /** Switches between the 3D book and the flat screen in its chrome. */
 export function toggle3D() {
+  if (ui.review.state !== 'live') return;
   ui.prefer3d = !ui.prefer3d;
   storage.set('view-3d', ui.prefer3d ? 'on' : 'off');
   syncView();
@@ -1691,6 +1940,10 @@ async function onPanel({ panel, orientation, degrees }) {
   if (typeof degrees === 'number') ui.hinge = degrees;
   const chrome = await chromeOf(udid, panel === 'primary' ? null : panel);
   if (!chrome || ui.udid !== udid) return;
+  if (ui.review.open && (ui.chrome?.screen.width !== chrome.screen.width || ui.chrome?.screen.height !== chrome.screen.height || ui.orientation !== orientation)) {
+    await returnToLive();
+    clearReview();
+  }
   ui.chrome = chrome;
   ui.orientation = orientation in ROTATION ? orientation : 'portrait';
   await tick();
@@ -1762,6 +2015,8 @@ export async function loadDevices() {
 
 /** Selecting shows the device; only a running one streams. Starting is explicit. */
 export async function selectDevice(sim) {
+  await returnToLive();
+  clearReview();
   const starting = ui.starting;
   ui.picked = [sim.udid]; // showing a device selects it alone
   await setMode('interact');
@@ -2082,7 +2337,11 @@ export async function createSimulator({ name, deviceType, runtime }) {
 export function start() {
   requestAnimationFrame(paintLoop);
   const stats = setInterval(sampleStats, 1000);
-  document.addEventListener('visibilitychange', settleStream);
+  const onVisibility = () => {
+    settleStream();
+    if (document.hidden) { ui.review.playing = false; reviewClock = null; }
+  };
+  document.addEventListener('visibilitychange', onVisibility);
   // Settle the format before the first device connects.
   decodeCapabilities().then(({ playable, hardware }) => {
     ui.stream.playable = playable;
@@ -2098,6 +2357,7 @@ export function start() {
   return () => {
     clearInterval(timer);
     clearInterval(stats);
-    document.removeEventListener('visibilitychange', settleStream);
+    document.removeEventListener('visibilitychange', onVisibility);
+    clearReview();
   };
 }
