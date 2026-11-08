@@ -8,3 +8,8 @@ export function glyphs(combo) {
   const code = parts.pop();
   return [...parts.map((m) => MODIFIERS[m]), KEYS[code] ?? code.replace(/^(Key|Digit)/, '')];
 }
+
+export function ariaShortcut(combo) {
+  const names = { ctrl: 'Control', alt: 'Alt', shift: 'Shift', meta: 'Meta', Equal: 'Plus', Minus: '-' };
+  return combo.split('+').map((part) => names[part] ?? part.replace(/^(Key|Digit)/, '')).join('+');
+}
