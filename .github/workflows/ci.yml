@@ -1,4 +1,4 @@
-# Modified for Otto.
+# Modified for Milo.
 name: CI
 
 on:
@@ -29,14 +29,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build (UI, then the debug host)
         run: pnpm build
-      - run: app/host/.build/debug/otto version
+      - run: app/host/.build/debug/milo version
       - name: Exercise the MCP annotation lifecycle
         run: python3 app/scripts/check_mcp.py
       - name: Package (release build)
         run: app/scripts/package.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: otto-macos-arm64
+          name: milo-macos-arm64
           path: dist/*.tar.gz
 
   sdk:
@@ -49,10 +49,12 @@ jobs:
           xcode-version: latest-stable
       - name: Build the package for macOS
         run: swift build
+      - name: Verify legacy SDK imports and hooks on every platform
+        run: sh app/scripts/check_sdk.sh
       - name: Type-check each platform, Debug and Release
         # swiftc against each SDK: unlike xcodebuild, it doesn't need the
         # platform's simulator runtime installed.
-        working-directory: Sources/OttoPlus
+        working-directory: Sources/MiloKit
         run: |
           for pair in iphonesimulator:arm64-apple-ios17.0-simulator \
                       macosx:arm64-apple-macos14.0 \
@@ -61,12 +63,12 @@ jobs:
                       xrsimulator:arm64-apple-xros1.0-simulator; do
             for debug in -DDEBUG ""; do
               echo "${pair#*:} ${debug:-release}"
-              xcrun -sdk "${pair%%:*}" swiftc -swift-version 6 -module-name OttoPlus \
+              xcrun -sdk "${pair%%:*}" swiftc -swift-version 6 -module-name MiloKit \
                 -parse-as-library -target "${pair#*:}" $debug -typecheck ./*.swift
             done
           done
       - name: Build for Mac Catalyst
-        run: xcodebuild build -scheme OttoPlus -destination 'generic/platform=macOS,variant=Mac Catalyst' -quiet
+        run: xcodebuild build -scheme MiloKit -destination 'generic/platform=macOS,variant=Mac Catalyst' -quiet
       - name: Build the demo app
         working-directory: assets/examples/DemoApp
         run: xcodebuild build -workspace DemoApp.xcworkspace -scheme DemoApp -destination 'generic/platform=iOS Simulator' -quiet
@@ -89,4 +91,4 @@ jobs:
           for f in skills/*/SKILL.md; do
             head -1 "$f" | grep -qx -- '---' && grep -q '^name:' "$f" && grep -q '^description:' "$f" && echo "ok $f"
           done
-      - run: python3 -m py_compile skills/otto-sdk/scripts/add_package.py
+      - run: python3 -m py_compile skills/milo-sdk/scripts/add_package.py

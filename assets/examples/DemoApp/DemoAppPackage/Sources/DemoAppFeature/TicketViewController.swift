@@ -1,9 +1,9 @@
-// Modified for Otto.
+// Modified for Milo.
 import SwiftUI
 import UIKit
-import OttoPlus
+import MiloKit
 
-/// A UIKit screen, to exercise OttoPlus on UIKit views.
+/// A UIKit screen, to exercise MiloKit on UIKit views.
 final class TicketViewController: UIViewController {
     private let show: Show
 
@@ -19,10 +19,10 @@ final class TicketViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground
 
-        let card = TicketCardView(show: show).ottoTag()
+        let card = TicketCardView(show: show).miloTag()
 
         // SwiftUI inside UIKit, which in turn hosts a UIKit view.
-        let pass = UIHostingController(rootView: EntryPassView(gate: "Gate 3").ottoTag())
+        let pass = UIHostingController(rootView: EntryPassView(gate: "Gate 3").miloTag())
         pass.sizingOptions = .intrinsicContentSize
         pass.view.backgroundColor = .clear
         addChild(pass)

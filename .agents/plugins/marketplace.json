@@ -1,11 +1,11 @@
 {
-  "name": "otto",
+  "name": "milo",
   "interface": {
-    "displayName": "Otto"
+    "displayName": "Milo"
   },
   "plugins": [
     {
-      "name": "otto",
+      "name": "milo",
       "source": {
         "source": "local",
         "path": "./"

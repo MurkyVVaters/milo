@@ -1,9 +1,11 @@
-<!-- Modified for Otto. -->
-# Otto
+<!-- Modified for Milo. -->
+# Milo
+
+Previously named Otto. See [the migration guide](MIGRATION.md) for existing installations and app integrations.
 
 Run your iOS app in the browser. Point to what needs work. Send it to your coding agent.
 
-Otto puts your simulator, visual feedback, screenshots, and recordings in one workspace. Select an element or draw a box, leave a note, and your agent gets the screen context it needs to find the code.
+Milo puts your simulator, visual feedback, screenshots, and recordings in one workspace. Select an element or draw a box, leave a note, and your agent gets the screen context it needs to find the code.
 
 ## What you can do
 
@@ -13,15 +15,15 @@ Otto puts your simulator, visual feedback, screenshots, and recordings in one wo
 - Capture screenshots and record the simulator as an MP4.
 - Create, start, rotate, and manage simulators from the browser.
 - Inspect the iPhone Duo in 3D with Xcode 27.1 or later.
-- Add the optional OttoPlus SDK for exact Swift source locations.
+- Add the optional MiloKit SDK for exact Swift source locations.
 
 ## Get started
 
 You need an Apple Silicon Mac, Xcode 26 or later, Node.js, and [pnpm](https://pnpm.io). The native host targets macOS 15 or later.
 
 ```sh
-git clone https://github.com/MurkyVVaters/otto.git
-cd otto
+git clone https://github.com/MurkyVVaters/milo.git
+cd milo
 pnpm install --frozen-lockfile
 pnpm build
 pnpm start
@@ -39,7 +41,7 @@ For UI development, keep the host running and use `pnpm dev` in another terminal
 4. Write your note and press Return.
 5. Press Esc to clear the selection, then Esc again to return to the live app.
 
-Each annotation includes element details, search hints, a screenshot of the full screen, and a close-up. An SDK is optional; Otto reads the simulator's accessibility tree by default.
+Each annotation includes element details, search hints, a screenshot of the full screen, and a close-up. An SDK is optional; Milo reads the simulator's accessibility tree by default.
 
 The controls below the device include screenshots, MP4 recording, Home, and rotation. Use **⌘S** for a screenshot and **⌘R** to toggle recording.
 
@@ -63,57 +65,57 @@ the flat device view. Playback reviews recorded images while the simulator keeps
 Register the built executable as a stdio MCP server. Replace the example path with the absolute path to your checkout.
 
 ```sh
-codex mcp add otto -- /absolute/path/to/otto/app/host/.build/debug/otto mcp
+codex mcp add milo -- /absolute/path/to/milo/app/host/.build/debug/milo mcp
 ```
 
 ```sh
-claude mcp add otto -- /absolute/path/to/otto/app/host/.build/debug/otto mcp
+claude mcp add milo -- /absolute/path/to/milo/app/host/.build/debug/milo mcp
 ```
 
 Other MCP clients can use the same executable with `mcp` as its argument. The server starts the browser host if it is not already running.
 
 | Tool | Purpose |
 |---|---|
-| `otto_get_pending` | Read pending annotations and screenshot paths |
-| `otto_get_all` | Read every annotation, including completed ones |
-| `otto_watch` | Wait for new annotations |
-| `otto_acknowledge` | Take an annotation into progress |
-| `otto_resolve` | Mark an annotation as fixed |
-| `otto_dismiss` | Decline an annotation with a reason |
-| `otto_reply` | Reply to an annotation |
+| `milo_get_pending` | Read pending annotations and screenshot paths |
+| `milo_get_all` | Read every annotation, including completed ones |
+| `milo_watch` | Wait for new annotations |
+| `milo_acknowledge` | Take an annotation into progress |
+| `milo_resolve` | Mark an annotation as fixed |
+| `milo_dismiss` | Decline an annotation with a reason |
+| `milo_reply` | Reply to an annotation |
 
 The agent skills in [skills/](skills) explain how to work through annotations and add the optional SDK. See [SETUP.md](SETUP.md) for setup instructions.
 
 ## Optional SDK
 
-Add this repository as a local Swift package dependency and link **OttoPlus** to your app target. The SDK adds view names and source locations to annotations. Its hooks become no-ops in Release builds.
+Add this repository as a local Swift package dependency and link **MiloKit** to your app target. The SDK adds view names and source locations to annotations. Its hooks become no-ops in Release builds.
 
 ```swift
-import OttoPlus
+import MiloKit
 
 RootView()
-    .otto()
+    .milo()
 
 ShowRow(show: show)
-    .ottoTag()
+    .miloTag()
 ```
 
-UIKit apps can start the inspector with `Otto.start()` and tag individual views with `.ottoTag()`. The [demo app](assets/examples/DemoApp) includes SwiftUI and UIKit examples.
+UIKit apps can start the inspector with `Milo.start()` and tag individual views with `.miloTag()`. The [demo app](assets/examples/DemoApp) includes SwiftUI and UIKit examples.
 
 ## Configuration
 
 | Environment variable | Default |
 |---|---|
-| `OTTO_PORT` | `38470` |
-| `OTTO_HOME` | `otto` inside the macOS temporary directory |
-| `OTTO_WEB` | Automatically located `app/web/` directory |
-| `OTTO_SDK_URL` | `http://127.0.0.1:38471` |
+| `MILO_PORT` | `38470` |
+| `MILO_HOME` | `milo` inside the macOS temporary directory |
+| `MILO_WEB` | Automatically located `app/web/` directory |
+| `MILO_SDK_URL` | `http://127.0.0.1:38471` |
 
-Device artwork is cached in `~/Library/Caches/otto`. Use a different `OTTO_PORT` if another simulator workspace is already listening on the default port.
+Device artwork is cached in `~/Library/Caches/milo`. Use a different `MILO_PORT` if another simulator workspace is already listening on the default port.
 
 ## Development
 
-The Svelte UI lives in `app/web/`. The Swift host in `app/host/` serves it, streams the simulator, handles input, and provides the MCP server. `Sources/OttoPlus/` contains the optional SDK.
+The Svelte UI lives in `app/web/`. The Swift host in `app/host/` serves it, streams the simulator, handles input, and provides the MCP server. `Sources/MiloKit/` contains the optional SDK.
 
 ```sh
 pnpm build                           # Build the UI and native host

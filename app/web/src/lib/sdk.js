@@ -1,6 +1,6 @@
-// Modified for Otto.
-// Targets from OttoPlus, the optional in-app SDK. It reports the
-// real view/layer tree plus `.ottoTag()` views with their source location.
+// Modified for Milo.
+// Targets from MiloKit, the optional in-app SDK. It reports the
+// real view/layer tree plus `.miloTag()` views with their source location.
 
 const SNAP = 2; // pt; a tag and the layer it paints count as the same box within this
 

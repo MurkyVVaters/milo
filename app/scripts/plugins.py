@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Modified for Otto.
+# Modified for Milo.
 """Writes the plugin manifests for Claude Code, Codex and Cursor.
 
 Each plugin carries the skills in skills/, the MCP server, and through the
 server's launcher (app/scripts/mcp-launch.sh, written inline: no agent
-gives a plugin a path to itself) otto itself. The version comes
+gives a plugin a path to itself) milo itself. The version comes
 from Config.version, so a release only bumps that.
 
     app/scripts/plugins.py           write them
@@ -16,34 +16,34 @@ import re
 import sys
 
 root = pathlib.Path(__file__).resolve().parents[2]
-config = (root / "app/host/Sources/otto/Config.swift").read_text()
+config = (root / "app/host/Sources/milo/Config.swift").read_text()
 version = re.search(r'static let version = "([^"]+)"', config).group(1)
 
 launcher = "\n".join(
     line for line in (root / "app/scripts/mcp-launch.sh").read_text().splitlines()
     if line.strip() and not line.lstrip().startswith("#")
 ).replace("v=VERSION", f"v={version}")
-servers = {"otto": {"command": "/bin/sh", "args": ["-c", launcher]}}
+servers = {"milo": {"command": "/bin/sh", "args": ["-c", launcher]}}
 
 description = ("Annotate a running iOS simulator in the browser and hand each note to your agent: "
-               "otto itself, its MCP server, and skills for working through annotations "
-               "and adding the OttoPlus SDK.")
+               "milo itself, its MCP server, and skills for working through annotations "
+               "and adding the MiloKit SDK.")
 author = {"name": "MurkyVVaters", "url": "https://github.com/MurkyVVaters"}
-repository = "https://github.com/MurkyVVaters/otto"
+repository = "https://github.com/MurkyVVaters/milo"
 keywords = ["ios", "simulator", "annotation", "design-review", "swiftui", "uikit", "mcp"]
-common = {"name": "otto", "version": version, "description": description, "author": author,
+common = {"name": "milo", "version": version, "description": description, "author": author,
           "homepage": repository, "repository": repository, "license": "Apache-2.0", "keywords": keywords}
 icon = "./app/web/public/icon.png"
 
 files = {
     ".claude-plugin/plugin.json": dict(common, mcpServers=servers),
     ".claude-plugin/marketplace.json": {
-        "name": "otto", "owner": author,
-        "metadata": {"description": "Otto: annotate iOS simulators for coding agents.", "version": version},
-        "plugins": [{"name": "otto", "source": "./", "description": description, "category": "development"}],
+        "name": "milo", "owner": author,
+        "metadata": {"description": "Milo: annotate iOS simulators for coding agents.", "version": version},
+        "plugins": [{"name": "milo", "source": "./", "description": description, "category": "development"}],
     },
     ".codex-plugin/plugin.json": dict(common, skills="./skills/", mcpServers="./.codex-plugin/mcp.json", interface={
-        "displayName": "Otto",
+        "displayName": "Milo",
         "shortDescription": "Turn notes drawn on an iOS simulator into code changes.",
         "longDescription": ("Freeze the simulator's screen in your browser, click an element or drag a box around "
                             "anything, and write what should change. Codex gets the element, the screen, strings "
@@ -53,22 +53,22 @@ files = {
         "websiteURL": repository, "brandColor": "#6E56CF", "composerIcon": icon, "logo": icon,
         "defaultPrompt": ["Go through my pending simulator annotations",
                           "Watch for my simulator annotations and fix them as they come in",
-                          "Add the OttoPlus SDK to this app"],
+                          "Add the MiloKit SDK to this app"],
     }),
     ".codex-plugin/mcp.json": {"mcpServers": servers},
     ".agents/plugins/marketplace.json": {
-        "name": "otto", "interface": {"displayName": "Otto"},
-        "plugins": [{"name": "otto", "source": {"source": "local", "path": "./"},
+        "name": "milo", "interface": {"displayName": "Milo"},
+        "plugins": [{"name": "milo", "source": {"source": "local", "path": "./"},
                      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
                      "category": "Developer Tools"}],
     },
-    ".cursor-plugin/plugin.json": dict(common, displayName="Otto", logo=icon, skills="./skills/",
+    ".cursor-plugin/plugin.json": dict(common, displayName="Milo", logo=icon, skills="./skills/",
                                        mcpServers="./.cursor-plugin/mcp.json"),
     ".cursor-plugin/mcp.json": {"mcpServers": servers},
     ".cursor-plugin/marketplace.json": {
-        "name": "otto", "owner": author,
-        "metadata": {"description": "Otto: annotate iOS simulators for coding agents.", "version": version},
-        "plugins": [{"name": "otto", "source": "./", "description": description}],
+        "name": "milo", "owner": author,
+        "metadata": {"description": "Milo: annotate iOS simulators for coding agents.", "version": version},
+        "plugins": [{"name": "milo", "source": "./", "description": description}],
     },
 }
 

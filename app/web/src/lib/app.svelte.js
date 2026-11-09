@@ -1,4 +1,4 @@
-// Modified for Otto.
+// Modified for Milo.
 // App state and behaviour. `ui` is reactive and drives the components;
 // `rt` holds what changes every frame or pointer move (stream, frozen frame,
 // hover, drag) and is never rendered directly.
@@ -16,10 +16,14 @@ import { pieceMaps, locate, stageBox, facing, labelMatrix } from './screen3d.js'
 
 export const storage = {
   get(k) {
-    try { return localStorage.getItem(`otto:${k}`); } catch { return null; }
+    try {
+      const value = localStorage.getItem(`milo:${k}`) ?? localStorage.getItem(`otto:${k}`);
+      if (value !== null) localStorage.setItem(`milo:${k}`, value);
+      return value;
+    } catch { return null; }
   },
   set(k, v) {
-    try { localStorage.setItem(`otto:${k}`, v); } catch {}
+    try { localStorage.setItem(`milo:${k}`, v); } catch {}
   },
 };
 
@@ -126,7 +130,7 @@ const rt = {
 };
 
 // For poking at from the devtools console.
-if (typeof window !== 'undefined') window.otto = { ui, rt, hover: () => rt.hover, partsWithin };
+if (typeof window !== 'undefined') window.milo = { ui, rt, hover: () => rt.hover, partsWithin };
 
 // ---------- status ----------
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise Otto's MCP tools against a temporary host and annotation store."""
+"""Exercise Milo's MCP tools against a temporary host and annotation store."""
 
 import base64
 import json
@@ -15,14 +15,15 @@ import urllib.request
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BINARY = ROOT / "app/host/.build/debug/otto"
-TOOLS = {"otto_" + action for action in (
+BINARY = ROOT / "app/host/.build/debug/milo"
+TOOLS = {"milo_" + action for action in (
     "get_pending", "get_all", "watch", "acknowledge", "resolve", "dismiss", "reply"
 )}
 
 
 class Client:
     def __init__(self, env):
+        self.legacy = "OTTO_PORT" in env and "MILO_PORT" not in env
         self.process = subprocess.Popen(
             [str(BINARY), "mcp"], env=env, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
@@ -56,6 +57,8 @@ class Client:
         return self.receive(self.send(method, params))
 
     def tool(self, name, arguments=None):
+        if self.legacy:
+            name = name.replace("milo_", "otto_", 1)
         result = self.rpc("tools/call", {"name": name, "arguments": arguments or {}})
         assert not result.get("isError"), result
         return result["content"][0]["text"]
@@ -69,12 +72,14 @@ class Client:
             self.process.wait()
 
 
-def main():
+def main(legacy=False):
     with socket.socket() as reservation:
         reservation.bind(("127.0.0.1", 0))
         port = reservation.getsockname()[1]
-    with tempfile.TemporaryDirectory(prefix="otto-mcp-check-") as home:
-        env = dict(os.environ, OTTO_PORT=str(port), OTTO_HOME=home)
+    with tempfile.TemporaryDirectory(prefix="milo-mcp-check-") as home:
+        env = {key: value for key, value in os.environ.items() if not key.startswith(("MILO_", "OTTO_"))}
+        prefix = "OTTO" if legacy else "MILO"
+        env.update({prefix + "_PORT": str(port), prefix + "_HOME": home})
         host = subprocess.Popen(
             [str(BINARY), "serve"], env=env,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -104,73 +109,75 @@ def main():
 
         try:
             for _ in range(100):
-                assert host.poll() is None, "Otto host exited"
+                assert host.poll() is None, "Milo host exited"
                 try:
                     http("/api/annotations")
                     break
                 except OSError:
                     time.sleep(0.1)
             else:
-                raise AssertionError("Otto host did not start")
+                raise AssertionError("Milo host did not start")
             for _ in range(2):
                 client = Client(env)
                 clients.append(client)
                 initialized = client.rpc("initialize", {
                     "protocolVersion": "2025-11-25", "capabilities": {},
-                    "clientInfo": {"name": "otto-integration-check", "version": "1"},
+                    "clientInfo": {"name": "milo-integration-check", "version": "1"},
                 })
-                assert initialized["serverInfo"]["name"] == "otto"
-                assert "otto_get_pending" in initialized["instructions"]
+                assert initialized["serverInfo"]["name"] == "milo"
+                assert "milo_get_pending" in initialized["instructions"]
                 assert {tool["name"] for tool in client.rpc("tools/list", {})["tools"]} == TOOLS
             first, second = clients
-            assert "No pending" in first.tool("otto_get_pending")
-            assert "No annotations" in first.tool("otto_get_all")
-            assert "Nothing new" in first.tool("otto_watch", {"timeout_seconds": 0.05})
+            assert "No pending" in first.tool("milo_get_pending")
+            assert "No annotations" in first.tool("milo_get_all")
+            assert "Nothing new" in first.tool("milo_watch", {"timeout_seconds": 0.05})
 
             waiting = first.send("tools/call", {
-                "name": "otto_watch", "arguments": {"timeout_seconds": 5},
+                "name": "milo_watch", "arguments": {"timeout_seconds": 5},
             })
-            resolved = annotation("Otto integration check")
+            resolved = annotation("Milo integration check")
             assert resolved in first.receive(waiting)["content"][0]["text"]
-            assert resolved in first.tool("otto_get_pending")
-            first.tool("otto_acknowledge", {"id": resolved[:4]})
+            assert resolved in first.tool("milo_get_pending")
+            first.tool("milo_acknowledge", {"id": resolved[:4]})
             rejected = second.rpc("tools/call", {
-                "name": "otto_acknowledge", "arguments": {"id": resolved},
+                "name": "milo_acknowledge", "arguments": {"id": resolved},
             })
             assert rejected.get("isError"), "A second client claimed an occupied annotation"
-            first.tool("otto_reply", {"id": resolved, "message": "Otto reply check"})
-            first.tool("otto_resolve", {"id": resolved, "summary": "Otto resolved check"})
+            first.tool("milo_reply", {"id": resolved, "message": "Milo reply check"})
+            first.tool("milo_resolve", {"id": resolved, "summary": "Milo resolved check"})
             record = http("/api/annotations/" + resolved)
             assert record["status"] == "resolved"
-            assert record["resolution"] == "Otto resolved check"
-            assert record["replies"][-1]["message"] == "Otto reply check"
+            assert record["resolution"] == "Milo resolved check"
+            assert record["replies"][-1]["message"] == "Milo reply check"
 
-            dismissed = annotation("Otto dismissal check")
-            first.tool("otto_dismiss", {"id": dismissed, "reason": "Otto dismissed check"})
+            dismissed = annotation("Milo dismissal check")
+            first.tool("milo_dismiss", {"id": dismissed, "reason": "Milo dismissed check"})
             assert http("/api/annotations/" + dismissed)["status"] == "dismissed"
-            assert resolved in first.tool("otto_get_all")
-            assert dismissed in first.tool("otto_get_all")
-            assert "No pending" in first.tool("otto_get_pending")
+            assert resolved in first.tool("milo_get_all")
+            assert dismissed in first.tool("milo_get_all")
+            assert "No pending" in first.tool("milo_get_pending")
             claude = Client(env)
             clients.append(claude)
             initialized = claude.rpc("initialize", {
                 "protocolVersion": "2025-11-25", "capabilities": {},
-                "clientInfo": {"name": "claude-otto-check", "version": "1"},
+                "clientInfo": {"name": "claude-milo-check", "version": "1"},
             })
             assert "claude/channel" in initialized["capabilities"]["experimental"]
-            assert "otto_acknowledge" in initialized["instructions"]
-            pushed = annotation("Otto channel delivery check")
+            assert "milo_acknowledge" in initialized["instructions"]
+            pushed = annotation("Milo channel delivery check")
             event = claude.notifications.get(timeout=20)
             assert event["method"] == "notifications/claude/channel"
             assert event["params"]["meta"]["annotation_id"] == pushed
             assert all(name in event["params"]["content"] for name in (
-                "otto_acknowledge", "otto_resolve", "otto_reply",
+                "milo_acknowledge", "milo_resolve", "milo_reply",
             ))
-            claude.tool("otto_acknowledge", {"id": pushed})
-            claude.tool("otto_resolve", {"id": pushed, "summary": "Otto channel verified"})
-            assert "No pending" in first.tool("otto_get_pending")
-            print("PASS: Otto MCP identity, seven tools, wait delivery/timeout, screenshots, claims, replies, resolution, and dismissal.")
-            print("PASS: Claude channel capability, Otto instructions, pushed event context, and tool responses alongside notifications.")
+            claude.tool("milo_acknowledge", {"id": pushed})
+            claude.tool("milo_resolve", {"id": pushed, "summary": "Milo channel verified"})
+            assert "No pending" in first.tool("milo_get_pending")
+            print("PASS: Milo MCP identity, seven tools, wait delivery/timeout, screenshots, claims, replies, resolution, and dismissal.")
+            print("PASS: Claude channel capability, Milo instructions, pushed event context, and tool responses alongside notifications.")
+            if legacy:
+                print("PASS: Legacy OTTO_PORT/OTTO_HOME and all seven otto_* tool aliases preserve the annotation lifecycle.")
         finally:
             for client in clients:
                 client.close()
@@ -184,3 +191,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    main(legacy=True)

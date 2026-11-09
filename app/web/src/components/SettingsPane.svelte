@@ -1,4 +1,4 @@
-<!-- Modified for Otto. -->
+<!-- Modified for Milo. -->
 <script>
   import { ui, setStreamChoice, setStreamScale, setStreamBitrate, toggleSdk, BITRATE_STEPS } from '../lib/app.svelte.js';
   import { AUTO_ORDER, FORMATS, HEVC_422, formatLabel } from '../lib/stream.js';
@@ -101,7 +101,7 @@
 <section class="settings-group">
   <h3>Annotate</h3>
   <label class="setting">
-    <span>Use OttoPlus <kbd>S</kbd></span>
+    <span>Use MiloKit <kbd>S</kbd></span>
     <input type="checkbox" class="switch" checked={ui.sdkEnabled} onchange={toggleSdk}>
   </label>
   <div class="setting-note">

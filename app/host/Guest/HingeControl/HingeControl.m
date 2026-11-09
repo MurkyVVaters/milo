@@ -1,8 +1,8 @@
-// Modified for Otto.
+// Modified for Milo.
 // Copied from baguette (https://github.com/tddworks/baguette, Injected/HingeControl
 // at 5644ba2), Copyright 2026 tddworks, licensed under the Apache License 2.0
-// (see host/Sources/OttoBridge/LICENSE-baguette). Changes: the HID services'
-// product names; the host builds it (see host/Sources/otto/Guest.swift).
+// (see host/Sources/MiloBridge/LICENSE-baguette). Changes: the HID services'
+// product names; the host builds it (see host/Sources/milo/Guest.swift).
 
 // HingeControl — drives iPhone Duo's hinge (and its orientation picker)
 // from inside the simulator, the way Device Hub does.
@@ -165,8 +165,8 @@ int main(int argc, char **argv) {
       uint64_t sid = ((uint64_t (*)(id, SEL))objc_msgSend)(service, sel_registerName("serviceID"));
       return sid ? service : nil;
     };
-    id service = serviceOf(0xFF61, 0x5B, @"Otto HingeControl", NO);
-    id buttons = serviceOf(0x0B, 0x01, @"Otto HingeControl buttons", YES);
+    id service = serviceOf(0xFF61, 0x5B, @"Milo HingeControl", NO);
+    id buttons = serviceOf(0x0B, 0x01, @"Milo HingeControl buttons", YES);
     if (!service || !buttons) { fprintf(stderr, "HID service did not activate\n"); return 1; }
     usleep(300 * 1000);   // let the event system enumerate them
     if (hingeDeadlinePassed(deadline)) {

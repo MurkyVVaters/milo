@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "otto": {
+    "milo": {
       "command": "/bin/sh",
       "args": [
         "-c",
-        "v=0.3.0\n[ -n \"$OTTO_BIN\" ] && exec \"$OTTO_BIN\" mcp\ncache=\"$HOME/Library/Caches/otto/release/$v\"\nown=\"$cache/otto-$v/bin/otto\"\n[ -x \"$own\" ] && exec \"$own\" mcp\nfor b in \"$(command -v otto 2>/dev/null)\" /opt/homebrew/bin/otto /usr/local/bin/otto; do\n  [ -n \"$b\" ] && [ -x \"$b\" ] || continue\n  [ \"$(\"$b\" version 2>/dev/null)\" = \"$v\" ] && exec \"$b\" mcp\ndone\nbase=$OTTO_RELEASES\n[ -n \"$base\" ] || base=https://github.com/MurkyVVaters/otto/releases/download\ntarball=\"otto-$v-macos-arm64.tar.gz\"\npart=$(mktemp -d)\nif mkdir -p \"$cache\" &&\n  curl -fsSL \"$base/$v/$tarball\" -o \"$part/$tarball\" &&\n  curl -fsSL \"$base/$v/$tarball.sha256\" -o \"$part/$tarball.sha256\" &&\n  (cd \"$part\" && shasum -a 256 -c \"$tarball.sha256\" >/dev/null) &&\n  tar -xzf \"$part/$tarball\" -C \"$part\" &&\n  mv \"$part/otto-$v\" \"$cache/\" 2>/dev/null; [ -x \"$own\" ]; then\n  exec \"$own\" mcp\nfi\necho \"otto $v isn't installed and couldn't be downloaded: build this repository and set OTTO_BIN to its executable\" >&2\nexit 1"
+        "v=0.4.0\n[ -n \"$MILO_BIN\" ] && exec \"$MILO_BIN\" mcp\n[ -n \"$OTTO_BIN\" ] && exec \"$OTTO_BIN\" mcp\ncache=\"$HOME/Library/Caches/milo/release/$v\"\nown=\"$cache/milo-$v/bin/milo\"\n[ -x \"$own\" ] && exec \"$own\" mcp\nfor b in \"$(command -v milo 2>/dev/null)\" /opt/homebrew/bin/milo /usr/local/bin/milo; do\n  [ -n \"$b\" ] && [ -x \"$b\" ] || continue\n  [ \"$(\"$b\" version 2>/dev/null)\" = \"$v\" ] && exec \"$b\" mcp\ndone\nbase=${MILO_RELEASES:-$OTTO_RELEASES}\n[ -n \"$base\" ] || base=https://github.com/MurkyVVaters/milo/releases/download\ntarball=\"milo-$v-macos-arm64.tar.gz\"\npart=$(mktemp -d)\nif mkdir -p \"$cache\" &&\n  curl -fsSL \"$base/$v/$tarball\" -o \"$part/$tarball\" &&\n  curl -fsSL \"$base/$v/$tarball.sha256\" -o \"$part/$tarball.sha256\" &&\n  (cd \"$part\" && shasum -a 256 -c \"$tarball.sha256\" >/dev/null) &&\n  tar -xzf \"$part/$tarball\" -C \"$part\" &&\n  mv \"$part/milo-$v\" \"$cache/\" 2>/dev/null; [ -x \"$own\" ]; then\n  exec \"$own\" mcp\nfi\necho \"milo $v isn't installed and couldn't be downloaded: build this repository and set MILO_BIN to its executable\" >&2\nexit 1"
       ]
     }
   }

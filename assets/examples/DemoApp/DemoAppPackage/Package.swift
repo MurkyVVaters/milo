@@ -1,5 +1,5 @@
 // swift-tools-version: 6.2
-// Modified for Otto.
+// Modified for Milo.
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -15,14 +15,14 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../../.."), // this repository: the OttoPlus SDK
+        .package(name: "milo", path: "../../../.."), // this repository: the MiloKit SDK
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "DemoAppFeature",
-            dependencies: [.product(name: "OttoPlus", package: "otto")]
+            dependencies: [.product(name: "MiloKit", package: "milo")]
         ),
         .testTarget(
             name: "DemoAppFeatureTests",
