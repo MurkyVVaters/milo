@@ -1,6 +1,6 @@
 {
-  "name": "otto",
-  "version": "0.3.0",
+  "name": "milo",
+  "version": "0.4.0",
   "private": true,
   "description": "Annotate a running iOS simulator in the browser and hand the feedback to coding agents over MCP.",
   "type": "module",
@@ -8,8 +8,8 @@
     "build": "vite build && swift build --package-path app/host",
     "dev": "vite",
     "watch": "vite build --watch",
-    "start": "app/host/.build/debug/otto serve --open",
-    "mcp": "app/host/.build/debug/otto mcp"
+    "start": "app/host/.build/debug/milo serve --open",
+    "mcp": "app/host/.build/debug/milo mcp"
   },
   "license": "Apache-2.0",
   "devDependencies": {

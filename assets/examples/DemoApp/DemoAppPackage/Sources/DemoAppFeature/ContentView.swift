@@ -1,6 +1,6 @@
-// Modified for Otto.
+// Modified for Milo.
 import SwiftUI
-import OttoPlus
+import MiloKit
 
 struct Show: Identifiable {
     let id = UUID()
@@ -24,7 +24,7 @@ public struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     NextUpCard(show: tonight[0])
-                        .ottoTag()
+                        .miloTag()
 
                     Text("Later tonight")
                         .font(.headline)
@@ -32,17 +32,17 @@ public struct ContentView: View {
 
                     ForEach(tonight.dropFirst()) { show in
                         ShowRow(show: show)
-                            .ottoTag()
+                            .miloTag()
                     }
 
                     VenueTips()
-                        .ottoTag()
+                        .miloTag()
                 }
                 .padding(.horizontal, 20)
             }
             .navigationTitle("Tonight")
         }
-        .otto()
+        .milo()
     }
 
     public init() {}

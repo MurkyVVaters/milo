@@ -1,13 +1,13 @@
 {
-  "name": "otto",
-  "version": "0.3.0",
-  "description": "Annotate a running iOS simulator in the browser and hand each note to your agent: otto itself, its MCP server, and skills for working through annotations and adding the OttoPlus SDK.",
+  "name": "milo",
+  "version": "0.4.0",
+  "description": "Annotate a running iOS simulator in the browser and hand each note to your agent: milo itself, its MCP server, and skills for working through annotations and adding the MiloKit SDK.",
   "author": {
     "name": "MurkyVVaters",
     "url": "https://github.com/MurkyVVaters"
   },
-  "homepage": "https://github.com/MurkyVVaters/otto",
-  "repository": "https://github.com/MurkyVVaters/otto",
+  "homepage": "https://github.com/MurkyVVaters/milo",
+  "repository": "https://github.com/MurkyVVaters/milo",
   "license": "Apache-2.0",
   "keywords": [
     "ios",
@@ -21,7 +21,7 @@
   "skills": "./skills/",
   "mcpServers": "./.codex-plugin/mcp.json",
   "interface": {
-    "displayName": "Otto",
+    "displayName": "Milo",
     "shortDescription": "Turn notes drawn on an iOS simulator into code changes.",
     "longDescription": "Freeze the simulator's screen in your browser, click an element or drag a box around anything, and write what should change. Codex gets the element, the screen, strings to search the source for, and screenshots, then fixes the SwiftUI or UIKit code and reports back on each note.",
     "developerName": "MurkyVVaters",
@@ -31,14 +31,14 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/MurkyVVaters/otto",
+    "websiteURL": "https://github.com/MurkyVVaters/milo",
     "brandColor": "#6E56CF",
     "composerIcon": "./app/web/public/icon.png",
     "logo": "./app/web/public/icon.png",
     "defaultPrompt": [
       "Go through my pending simulator annotations",
       "Watch for my simulator annotations and fix them as they come in",
-      "Add the OttoPlus SDK to this app"
+      "Add the MiloKit SDK to this app"
     ]
   }
 }

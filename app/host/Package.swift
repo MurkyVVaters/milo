@@ -1,5 +1,5 @@
 // swift-tools-version: 6.0
-// Modified for Otto.
+// Modified for Milo.
 
 import PackageDescription
 
@@ -7,15 +7,15 @@ import PackageDescription
 // frameworks loaded at runtime with dlopen, and HTTP/WebSocket is built on
 // BSD sockets.
 let package = Package(
-    name: "OttoHost",
+    name: "MiloHost",
     platforms: [.macOS(.v15)],
     products: [
-        .executable(name: "otto", targets: ["otto"]),
-        .library(name: "OttoBridge", targets: ["OttoBridge"]),
+        .executable(name: "milo", targets: ["milo"]),
+        .library(name: "MiloBridge", targets: ["MiloBridge"]),
     ],
     targets: [
         .target(
-            name: "OttoBridge",
+            name: "MiloBridge",
             exclude: ["LICENSE-baguette", "LICENSE-sim-use"],
             linkerSettings: [
                 .linkedFramework("IOSurface"),
@@ -27,8 +27,8 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "otto",
-            dependencies: ["OttoBridge"]
+            name: "milo",
+            dependencies: ["MiloBridge"]
         ),
     ]
 )

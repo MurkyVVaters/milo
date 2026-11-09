@@ -1,4 +1,4 @@
-// Modified for Otto.
+// Modified for Milo.
 // Shared.xcconfig
 // Minimal shared configuration for scaffold tool customization
 // All other settings use Xcode project defaults
@@ -9,7 +9,7 @@
 // ==========================================
 PRODUCT_NAME = DemoApp
 PRODUCT_DISPLAY_NAME = Demo
-PRODUCT_BUNDLE_IDENTIFIER = dev.otto.demo
+PRODUCT_BUNDLE_IDENTIFIER = dev.milo.demo
 MARKETING_VERSION = 1.0
 CURRENT_PROJECT_VERSION = 1
 
