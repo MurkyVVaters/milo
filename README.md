@@ -1,8 +1,6 @@
 <!-- Modified for Milo. -->
 # Milo
 
-Previously named Otto. See [the migration guide](MIGRATION.md) for existing installations and app integrations.
-
 Run your iOS app in the browser. Point to what needs work. Send it to your coding agent.
 
 Milo puts your simulator, visual feedback, screenshots, and recordings in one workspace. Select an element or draw a box, leave a note, and your agent gets the screen context it needs to find the code.
