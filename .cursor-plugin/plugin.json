@@ -1,6 +1,6 @@
 {
   "name": "milo",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Annotate a running iOS simulator in the browser and hand each note to your agent: milo itself, its MCP server, and skills for working through annotations and adding the MiloKit SDK.",
   "author": {
     "name": "MurkyVVaters",
