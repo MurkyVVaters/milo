@@ -104,10 +104,11 @@
         id="mode-interact"
         class={ui.mode === 'interact' && ui.running ? 'icon-btn on' : 'icon-btn'}
         label="Interact" keys="KeyI"
+        aria-pressed={ui.mode === 'interact' && ui.running}
         data-icon="pointer"
         disabled={!ui.running}
         onclick={() => setMode('interact')}
-      >{@html icon('pointer')}</TooltipButton>
+      >{@html icon('pointer')}<span class="mode-label"><span>Interact</span></span></TooltipButton>
       <TooltipButton
         id="mode-annotate"
         class={ui.mode === 'annotate' ? 'icon-btn on' : 'icon-btn'}
