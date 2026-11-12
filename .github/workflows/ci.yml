@@ -27,6 +27,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Test browser measurement and capture logic
+        run: node --test app/web/src/lib/*.test.js
       - name: Build (UI, then the debug host)
         run: pnpm build
       - run: app/host/.build/debug/milo version

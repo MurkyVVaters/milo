@@ -2,6 +2,7 @@
 // Usage: <span data-icon="search"></span>, then hydrateIcons().
 
 const paths = {
+  xray: '<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="16" y="4" width="5" height="16" rx="1"/><path d="M8 12h8M10 10l-2 2 2 2M14 10l2 2-2 2"/>',
   pause: '<path d="M8 5v14M16 5v14" stroke-width="3.5"/>',
   'frame-back': '<path d="M6 5v14M18 5.5 8 12l10 6.5z"/>',
   'frame-forward': '<path d="M18 5v14M6 5.5 16 12 6 18.5z"/>',

@@ -1,6 +1,6 @@
 <script>
   import {
-    ui, setMode, setZoom, zoomIn, zoomOut, isFit, togglePanel, toggleFocus,
+    ui, toggleXray, xrayUnavailable, setMode, setZoom, zoomIn, zoomOut, isFit, togglePanel, toggleFocus,
     copyPending, clearDone, saveScreenshot, pressButton, pressAppSwitcher, pressHome,
     startDevice, shutdownDevice, restartDevice, copyScreen, toggleRecording, toggleReviewPanel, rotateBy, feature,
   } from '../lib/app.svelte.js';
@@ -111,13 +111,16 @@
       >{@html icon('pointer')}<span class="mode-label"><span>Interact</span></span></TooltipButton>
       <TooltipButton
         id="mode-annotate"
-        class={ui.mode === 'annotate' ? 'icon-btn on' : 'icon-btn'}
-        label={ui.mode === 'annotate' ? 'Leave Design Mode' : 'Design Mode'} keys="shift+meta+KeyD"
-        aria-pressed={ui.mode === 'annotate'}
+        class={ui.mode === 'annotate' && !ui.xray ? 'icon-btn on' : 'icon-btn'}
+        label={ui.mode === 'annotate' && !ui.xray ? 'Leave Design Mode' : 'Design Mode'} keys="shift+meta+KeyD"
+        aria-pressed={ui.mode === 'annotate' && !ui.xray}
         data-icon="annotate"
         disabled={!ui.running}
-        onclick={() => setMode(ui.mode === 'annotate' ? 'interact' : 'annotate')}
+        onclick={() => setMode(ui.mode === 'annotate' && !ui.xray ? 'interact' : 'annotate')}
       >{@html icon('annotate')}<span class="mode-label"><span>Design</span></span></TooltipButton>
+      <TooltipButton id="mode-xray" class={ui.xray ? 'icon-btn on' : 'icon-btn'} label={xrayUnavailable() || 'X-Ray: inspect spacing and sizes'} title={xrayUnavailable() || 'X-Ray: inspect spacing and sizes'} disabled={!!xrayUnavailable()} aria-pressed={ui.xray} onclick={toggleXray}>
+        {@html icon('xray')}<span class="mode-label"><span>X-Ray</span></span>
+      </TooltipButton>
     </div>
     <div class="pill" role="group" aria-label="Zoom">
       <TooltipButton id="zoom-out" label="Zoom out" keys="meta+Minus" data-icon="zoom-out" onclick={zoomOut}>{@html icon('zoom-out')}</TooltipButton>

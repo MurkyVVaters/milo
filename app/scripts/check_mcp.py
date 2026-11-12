@@ -95,13 +95,14 @@ def main(legacy=False):
             with urllib.request.urlopen(request, timeout=15) as response:
                 return json.load(response)
 
-        def annotation(comment):
+        def annotation(comment, measurements=None):
             # Known PNG bytes are persisted unchanged; no real app is modified.
             picture = base64.b64encode((ROOT / "app/web/public/icon.png").read_bytes()).decode()
             created = http("/api/annotations", {
                 "udid": "00000000-0000-0000-0000-000000000000",
                 "rect": {"x": 0, "y": 0, "width": 24, "height": 24},
                 "comment": comment, "kind": "area", "full": picture, "crop": picture,
+                "measurements": measurements,
             })
             for path in created["images"].values():
                 assert Path(path).is_file()
@@ -174,6 +175,28 @@ def main(legacy=False):
             claude.tool("milo_acknowledge", {"id": pushed})
             claude.tool("milo_resolve", {"id": pushed, "summary": "Milo channel verified"})
             assert "No pending" in first.tool("milo_get_pending")
+            measurements = {
+                "version": 1, "units": "pt", "region": {"x": 0, "y": 0, "width": 100, "height": 100},
+                "elements": [
+                    {"id": "a", "label": "Title", "source": "accessibility", "rect": {"x": 0, "y": 0, "width": 20, "height": 10}},
+                    {"id": "b", "label": "Button", "source": "sdk", "rect": {"x": 0, "y": 26.25, "width": 20, "height": 10}},
+                ],
+                "gaps": [{"from": "a", "to": "b", "axis": "y", "distance": 16.25}],
+            }
+            measured = annotation("X-Ray check", measurements)
+            record = http("/api/annotations/" + measured)
+            assert record["measurements"] == measurements
+            assert "16.3 pt vertical gap" in record["markdown"]
+            assert "X-Ray measurements" in first.tool("milo_get_pending")
+            request = urllib.request.Request(base + "/api/annotations/" + measured,
+                data=json.dumps({"comment": "Edited X-Ray note"}).encode(),
+                headers={"Content-Type": "application/json"}, method="PATCH")
+            with urllib.request.urlopen(request) as response:
+                response.read()
+            assert http("/api/annotations/" + measured)["measurements"] == measurements
+            first.tool("milo_resolve", {"id": measured, "summary": "Verified"})
+            assert "16.3 pt vertical gap" in first.tool("milo_get_all")
+            print("PASS: X-Ray storage, comment edits, rounded Markdown, and MCP measurement handoff.")
             print("PASS: Milo MCP identity, seven tools, wait delivery/timeout, screenshots, claims, replies, resolution, and dismissal.")
             print("PASS: Claude channel capability, Milo instructions, pushed event context, and tool responses alongside notifications.")
             if legacy:

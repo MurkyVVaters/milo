@@ -218,7 +218,7 @@ img { -webkit-user-drag: none; }
    curve). The name's column eases from 0fr to 1fr, i.e. exactly to its own
    width, and carries the spacing beside it, so one width opens and closes;
    like the sidebar, it is clipped rather than faded. */
-:is(#mode-interact, #mode-annotate) {
+:is(#mode-interact, #mode-annotate, #mode-xray) {
   display: inline-flex;
   align-items: center;
   width: auto;
@@ -226,12 +226,12 @@ img { -webkit-user-drag: none; }
   padding: 0 6px;
   transition: background-color 320ms cubic-bezier(0.4, 0, 0.2, 1), color 320ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-:is(#mode-interact, #mode-annotate) .mode-label {
+:is(#mode-interact, #mode-annotate, #mode-xray) .mode-label {
   display: grid;
   grid-template-columns: 0fr;
   transition: grid-template-columns 320ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-:is(#mode-interact, #mode-annotate) .mode-label > span {
+:is(#mode-interact, #mode-annotate, #mode-xray) .mode-label > span {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -240,11 +240,11 @@ img { -webkit-user-drag: none; }
   line-height: 16px;
 }
 /* The spacing beside the name is content, so the column clips it too (padding wouldn't be). */
-:is(#mode-interact, #mode-annotate) .mode-label > span::before { content: ""; display: inline-block; width: 5px; }
-:is(#mode-interact, #mode-annotate) .mode-label > span::after { content: ""; display: inline-block; width: 6px; }
-:is(#mode-interact, #mode-annotate).on .mode-label { grid-template-columns: 1fr; }
+:is(#mode-interact, #mode-annotate, #mode-xray) .mode-label > span::before { content: ""; display: inline-block; width: 5px; }
+:is(#mode-interact, #mode-annotate, #mode-xray) .mode-label > span::after { content: ""; display: inline-block; width: 6px; }
+:is(#mode-interact, #mode-annotate, #mode-xray).on .mode-label { grid-template-columns: 1fr; }
 @media (prefers-reduced-motion: reduce) {
-  :is(#mode-interact, #mode-annotate), :is(#mode-interact, #mode-annotate) .mode-label { transition: none; }
+  :is(#mode-interact, #mode-annotate, #mode-xray), :is(#mode-interact, #mode-annotate, #mode-xray) .mode-label { transition: none; }
 }
 
 /* macOS 27's toolbar controls (Figma, macOS 27 Community, nodes 4370:41840
@@ -1185,3 +1185,25 @@ kbd {
   .review-spacer { display: none; }
   .review-caption { font-size: 10px; }
 }
+
+/* X-Ray uses the same device-point coordinate space as the frozen screen. */
+.xray-overlay { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.xray-region { fill: #0d99ff08; stroke: #0d99ff; stroke-width: 1; stroke-dasharray: 4 3; }
+.xray-element { fill: transparent; stroke: #0b8fe8; stroke-width: 1; pointer-events: all; }
+.xray-gap { stroke: #0b8fe8; stroke-width: 1.5; pointer-events: stroke; }
+.xray-label rect { fill: #086fba; }
+.xray-label text { fill: white; font: 10px monospace; }
+.xray-label { pointer-events: all; }
+.xray-label.suppressed { visibility: hidden; }
+.xray-target:hover .xray-label { visibility: visible; }
+.xray-target:hover .xray-element, .xray-target:hover .xray-gap { stroke: #ff9f0a; stroke-width: 2; }
+
+#mode-xray.on { background: #086fba; color: white; }
+.xray-help button { margin-top: 10px; }
+
+.stage.xray-active { cursor: crosshair; touch-action: none; user-select: none; }
+
+.xray-level { display: flex; gap: 4px; margin: 10px 0; }
+.xray-level button { flex: 1; margin: 0; padding: 7px; border: 0; border-radius: 7px; color: inherit; background: #8882; cursor: pointer; }
+.xray-level button[aria-pressed="true"] { background: #086fba; color: white; }
+.xray-level button:disabled { opacity: .5; }
