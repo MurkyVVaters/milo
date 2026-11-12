@@ -519,6 +519,16 @@ final class AppServer: @unchecked Sendable {
         guard let full = b["full"]?.stringValue, let crop = b["crop"]?.stringValue else {
             throw BadRequest("full and crop images are required")
         }
+        if let m = b["measurements"], !m.isNull {
+            guard JS.number(m["version"]) == 1, m["units"]?.stringValue == "pt", Self.isRect(m["region"]),
+                  let elements = m["elements"]?.arrayValue, let gaps = m["gaps"]?.arrayValue,
+                  elements.count <= 2000, gaps.count <= 4000 else { throw BadRequest("invalid measurements") }
+            let ids = Set(elements.compactMap { $0["id"]?.stringValue })
+            guard ids.count == elements.count,
+                  elements.allSatisfy({ e in Self.isRect(e["rect"]) && JS.number(e["rect"]?["width"]) > 0 && JS.number(e["rect"]?["height"]) > 0 && e["label"]?.stringValue != nil && ["sdk", "accessibility"].contains(e["source"]?.stringValue ?? "") }),
+                  gaps.allSatisfy({ g in ids.contains(g["from"]?.stringValue ?? "") && ids.contains(g["to"]?.stringValue ?? "") && ["x", "y"].contains(g["axis"]?.stringValue ?? "") && JS.isFiniteNumber(g["distance"]) && JS.number(g["distance"]) >= 0 })
+            else { throw BadRequest("invalid measurement elements or gaps") }
+        }
         let rect = b["rect"]!
         let tree = b["tree"]?.objectValue
         let point = b["point"]?.objectValue != nil && JS.isFiniteNumber(b["point"]?["x"]) && JS.isFiniteNumber(b["point"]?["y"])
@@ -569,6 +579,7 @@ final class AppServer: @unchecked Sendable {
             "updatedAt": .string(now),
             "status": .string("pending"),
             "comment": .string(JS.trim(comment)),
+            "measurements": b["measurements"] ?? .null,
             "kind": .string(hit != nil ? "element" : "area"),
             "device": .object(JSONObject([
                 "udid": .string(udid),

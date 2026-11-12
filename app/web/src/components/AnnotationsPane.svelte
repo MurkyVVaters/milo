@@ -1,5 +1,5 @@
 <script>
-  import { ui, copyPending, clearDone, deleteAllAnnotations } from '../lib/app.svelte.js';
+  import { ui, setXrayLevel, inspectEntireScreen, annotateXray, copyPending, clearDone, deleteAllAnnotations } from '../lib/app.svelte.js';
   import { icon } from '../lib/icons.js';
   import AnnotationCard from './AnnotationCard.svelte';
   import ConfirmSheet from './ConfirmSheet.svelte';
@@ -13,7 +13,21 @@
 </script>
 
 <!-- How Design Mode works, where its annotations land, while it's on. -->
-{#if ui.frozen}
+{#if ui.xray}
+  <div class="design-help xray-help">
+    <h3>X-Ray</h3>
+    <div class="xray-level" role="group" aria-label="Measurement level">
+      <button aria-pressed={ui.xrayLevel === 'components'} disabled={!!ui.draft} onclick={() => setXrayLevel('components')}>Components</button>
+      <button aria-pressed={ui.xrayLevel === 'elements'} disabled={!!ui.draft} onclick={() => setXrayLevel('elements')}>Inside elements</button>
+    </div>
+    {#if ui.xrayLevel === 'components' && !ui.sdkAvailable}<p>Some outer borders are not reported by accessibility. MiloKit can expose additional container bounds.</p>{/if}
+    <p>{!ui.measurement ? 'Drag a frame from anywhere around the phone to inspect spacing and sizes.' : !ui.measurement.elements.length ? 'No reported elements in this area.' : `${ui.measurement.elements.length} elements · ${ui.measurement.gaps.length} gaps · pt`}</p>
+    <p>Reported bounds may include invisible touch areas. Hover to see the bounds source.</p>
+    <p><kbd>esc</kbd> clear, then leave</p>
+    <button class="alert-btn" disabled={!!ui.draft} onclick={inspectEntireScreen}>Inspect entire screen</button>
+    <button class="alert-btn default" disabled={!ui.measurement?.elements.length || !!ui.draft} onclick={annotateXray}>Annotate</button>
+  </div>
+{:else if ui.frozen}
   <div class="design-help">
     <h3>Design Mode</h3>
     <p>Click an element or drag a box around anything, then write what should change.</p>

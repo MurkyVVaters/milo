@@ -43,6 +43,22 @@ Each annotation includes element details, search hints, a screenshot of the full
 
 The controls below the device include screenshots, MP4 recording, Home, and rotation. Use **⌘S** for a screenshot and **⌘R** to toggle recording.
 
+## Inspect spacing with X-Ray
+
+Choose **X-Ray** beside Design Mode, then drag a frame over the frozen screen.
+You can start the drag outside the phone, or choose **Inspect entire screen**
+to select all reported elements at once.
+Use **Components** for reported outer containers, or **Inside elements** for their
+individual controls. Missing outer bounds require MiloKit; X-Ray does not guess borders.
+Milo outlines fully enclosed elements and shows their sizes and nearest horizontal
+and vertical gaps in iOS points. Hover a measurement to see its bounds source;
+**Annotate** attaches the measurements and marked screenshots to your agent feedback.
+Escape clears the frame, then returns to live interaction.
+
+X-Ray uses reported accessibility and optional MiloKit bounds, which can include
+invisible touch areas. It does not infer pixel boundaries or source-code padding.
+V1 supports the flat live simulator view, not animation review or 3D.
+
 ## Review animation captures
 
 Choose **Animation Review** (the film icon beside Record Screen), then **Start Capture**.

@@ -4,6 +4,7 @@
 // hover, drag) and is never rendered directly.
 
 import { tick } from 'svelte';
+import { candidates, measure, drawing, drawMeasurements, pointerPoint } from './measure.js';
 import { FrameCapture, CAPTURE_SECONDS, CAPTURE_BYTES, frameAt, reviewTime } from './review.js';
 import { notify } from './notify.svelte.js';
 import { hitTest, describe, nodesInRect, isSpringBoard, isWidget } from './ax.js';
@@ -40,6 +41,9 @@ export const ui = $state({
   message: null,      // replaces the device, e.g. when there's no artwork
   mode: 'interact',
   frozen: false,
+  xray: false,
+  xrayLevel: 'components',
+  measurement: null,
   sdkAvailable: false,
   sdkEnabled: storage.get('sdk') !== 'off',
   status: '',
@@ -638,6 +642,7 @@ export const syncScreen3D = () => rt.layers3D?.sync?.();
 
 export function onPointerDown(e) {
   rt.overlay.focus();
+  if (ui.xray) return xrayDown(e);
   if (ui.mode === 'annotate') return annotateDown(e);
   if (!ui.running) return;
   const { inside, ...point } = inputPoint(e);
@@ -649,6 +654,7 @@ export function onPointerDown(e) {
 }
 
 export function onPointerMove(e) {
+  if (ui.xray) return xrayMove(e);
   if (ui.mode === 'annotate') return annotateMove(e);
   if (rt.touching) {
     const { inside, ...point } = inputPoint(e);
@@ -658,6 +664,7 @@ export function onPointerMove(e) {
 }
 
 export function onPointerUp(e) {
+  if (ui.xray) return xrayUp(e);
   if (ui.mode === 'annotate') return annotateUp(e);
   if (!rt.touching) return;
   rt.touching = false;
@@ -768,6 +775,7 @@ export function onWindowKey(e) {
     // A selection goes first, then Design Mode.
     e.preventDefault();
     if (ui.draft) cancelComposer();
+    else if (ui.xray && ui.measurement) clearXray();
     else setMode('interact');
     return;
   }
@@ -1162,9 +1170,147 @@ export async function rotateBy(step) {
   updateScale();
 }
 
+// ---------- X-Ray (a tool within the frozen design mode) ----------
+let xrayDrag = null;
+let xrayFrame = 0;
+let freezeEpoch = 0;
+export function xrayUnavailable() {
+  if (!ui.running) return 'Start a simulator to use X-Ray';
+  if (is3D()) return 'Switch to the flat view to use X-Ray';
+  if (ui.review.state !== 'live') return 'Return to live view to use X-Ray';
+  if (!ui.live && !ui.frozen) return 'Waiting for a simulator frame';
+  return '';
+}
+export async function toggleXray() {
+  if (ui.xray) return setMode('interact');
+  if (xrayUnavailable()) return;
+  if (ui.mode !== 'annotate') await setMode('annotate');
+  if (!rt.frozen || ui.mode !== 'annotate' || xrayUnavailable()) return;
+  closeComposer(); clearLayer('.hl, .hl-label'); rt.hover = null;
+  ui.panels.tab = 'annotations';
+  if (!ui.panels.inspector) showPanel('inspector', true);
+  ui.xray = true;
+  rt.overlay?.focus();
+}
+export function clearXray() {
+  cancelAnimationFrame(xrayFrame); xrayFrame = 0; xrayDrag = null;
+  ui.measurement = null;
+  clearLayer('.xray-overlay');
+}
+function xrayPoint(e) {
+  const { width, height } = rt.frozen.points;
+  const box = rt.overlay.getBoundingClientRect();
+  const u = Math.max(0, Math.min(1, (e.clientX - box.left) / box.width));
+  const v = Math.max(0, Math.min(1, (e.clientY - box.top) / box.height));
+  return pointerPoint(u, v, { width, height }, ui.orientation);
+}
+// The stage receives drags begun outside the screen; inside-screen events
+// remain owned by the overlay. Never turn device controls into selections.
+export function xrayStageDown(e) {
+  if (!ui.xray || e.target.closest?.('#overlay, button, input, textarea, .marker, .composer')) return;
+  xrayDown(e, rt.stage);
+}
+export function xrayStageMove(e) {
+  if (ui.xray && e.target === rt.stage) xrayMove(e);
+}
+export function xrayStageUp(e) {
+  if (ui.xray && e.target === rt.stage) xrayUp(e);
+}
+export function setXrayLevel(level) {
+  if (!['components', 'elements'].includes(level) || ui.draft) return;
+  ui.xrayLevel = level;
+  if (rt.frozen && ui.measurement) {
+    ui.measurement = measure(candidates(rt.frozen), ui.measurement.region, rt.frozen.turned || 'portrait', level);
+    renderXray();
+  }
+}
+export function inspectEntireScreen() {
+  const f = rt.frozen;
+  if (!ui.xray || !f || ui.draft) return;
+  clearXray();
+  ui.measurement = measure(candidates(f), { x: 0, y: 0, ...f.points }, f.turned || 'portrait', ui.xrayLevel);
+  renderXray();
+  rt.overlay?.focus();
+}
+function xrayDown(e, capture = rt.overlay) {
+  if (!rt.frozen || ui.draft || e.button !== 0) return;
+  clearXray();
+  e.preventDefault();
+  rt.overlay.focus();
+  xrayDrag = { start: xrayPoint(e), frame: rt.frozen };
+  capture.setPointerCapture(e.pointerId);
+}
+function xrayMove(e) {
+  if (!xrayDrag || xrayDrag.frame !== rt.frozen) return;
+  xrayDrag.end = xrayPoint(e);
+  if (!xrayFrame) xrayFrame = requestAnimationFrame(() => {
+    xrayFrame = 0;
+    if (!xrayDrag || xrayDrag.frame !== rt.frozen) return;
+    ui.measurement = measure(candidates(rt.frozen), normalize(xrayDrag.start, xrayDrag.end), rt.frozen.turned || 'portrait', ui.xrayLevel);
+    renderXray();
+  });
+}
+function xrayUp(e) {
+  if (!xrayDrag || xrayDrag.frame !== rt.frozen) return;
+  cancelAnimationFrame(xrayFrame); xrayFrame = 0;
+  const region = normalize(xrayDrag.start, xrayPoint(e));
+  xrayDrag = null;
+  ui.measurement = region.width >= 4 && region.height >= 4 ? measure(candidates(rt.frozen), region, rt.frozen.turned || 'portrait', ui.xrayLevel) : null;
+  renderXray();
+}
+export function cancelXrayPointer() {
+  if (ui.xray && xrayDrag) clearXray();
+}
+function renderXray() {
+  clearLayer('.xray-overlay');
+  const data = ui.measurement, f = rt.frozen;
+  if (!data || !f) return;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('xray-overlay');
+  svg.setAttribute('viewBox', `0 0 ${f.points.width} ${f.points.height}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  const add = (tag, attrs, parent = svg) => {
+    const el = document.createElementNS(svg.namespaceURI, tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    parent.append(el); return el;
+  };
+  add('rect', { ...data.region, class: 'xray-region' });
+  const groups = new Map();
+  const group = (key, detail) => {
+    const g = add('g', { class: 'xray-target' });
+    add('title', {}, g).textContent = detail;
+    groups.set(key, g); return g;
+  };
+  for (const e of data.elements) add('rect', { ...e.rect, class: 'xray-element' }, group(e.id, `${e.label} · ${e.source} bounds`));
+  data.gaps.forEach((g, i) => {
+    const el = group(`g${i}`, `${g.distance} pt`);
+    add('line', { x1: g.start.x, y1: g.start.y, x2: g.end.x, y2: g.end.y, class: 'xray-gap' }, el);
+    for (const p of [g.start, g.end]) add('line', { x1: p.x - (g.axis === 'y' ? 3 : 0), x2: p.x + (g.axis === 'y' ? 3 : 0), y1: p.y - (g.axis === 'x' ? 3 : 0), y2: p.y + (g.axis === 'x' ? 3 : 0), class: 'xray-gap' }, el);
+  });
+  for (const l of drawing(data)) {
+    const parent = groups.get(l.key);
+    parent.querySelector('title').textContent = `${l.text} · ${l.detail}`;
+    const g = add('g', { class: l.hidden ? 'xray-label suppressed' : 'xray-label' }, parent);
+    add('rect', { ...l.rect, rx: 2 }, g);
+    add('text', { x: l.rect.x + 4, y: l.rect.y + 11 }, g).textContent = l.text;
+  }
+  rt.overlay.append(svg);
+}
+export function annotateXray() {
+  const data = ui.measurement;
+  if (!data?.elements.length || !rt.frozen) return;
+  closeComposer();
+  const el = selectionBox('indigo');
+  placeBox(el, data.region); boxLayer().append(el);
+  rt.picks = [{ id: ++pickIds, kind: 'area', rect: data.region, label: 'X-Ray', color: 'indigo', el }];
+  openComposer();
+  rt.draft.measurements = JSON.parse(JSON.stringify(data));
+}
+
 // ---------- annotate mode ----------
 
 export async function setMode(mode) {
+  if (ui.xray) { ui.xray = false; clearXray(); }
   if (ui.review.state === 'finishing') return;
   if (ui.review.state === 'capturing' && mode === 'annotate') await stopReviewCapture();
   if (ui.review.state === 'review') ui.review.playing = false;
@@ -1199,6 +1345,8 @@ export async function setMode(mode) {
  * while those requests are out.
  */
 async function freeze() {
+  const epoch = ++freezeEpoch;
+  clearXray();
   if (ui.review.state === 'review') return freezeReview();
   const was3D = is3D();
   const data = Promise.all([
@@ -1220,7 +1368,7 @@ async function freeze() {
   // A stream below full resolution blurs small things together (a ring of
   // dots, a word and its icon), so ask for the screen at full size too.
   const still = !was3D && bitmap.width < devicePixels().width ? requestStill() : Promise.resolve(null);
-  if (ui.mode !== 'annotate' || folding) return bitmap.close(); // left annotate mode, or folding again, meanwhile
+  if (epoch !== freezeEpoch || ui.mode !== 'annotate' || folding) return bitmap.close(); // left annotate mode, or folding again, meanwhile
   const f = (rt.frozen = {
     bitmap,
     tree: null,
@@ -1298,6 +1446,9 @@ function withinCover(tree, cover) {
 
 /** Lets the screen go live again, Design Mode's boxes and markers cleared. */
 function thaw() {
+  freezeEpoch++;
+  ui.xray = false;
+  clearXray();
   rt.frozen?.bitmap.close?.();
   rt.frozen = null;
   ui.frozen = false;
@@ -1312,6 +1463,10 @@ function applySdk() {
   const f = rt.frozen;
   if (!f) return;
   f.sdk = ui.sdkEnabled ? f.sdkAvailable : null;
+  if (ui.xray && ui.measurement) {
+    ui.measurement = measure(candidates(f), ui.measurement.region, f.turned || 'portrait', ui.xrayLevel);
+    renderXray();
+  }
   ui.sdkAvailable = !!f.sdkAvailable;
   if (f.reviewTime != null) return;
   setStatus(!f.tree ? 'Frozen (no accessibility data)' : f.sdk ? 'Frozen · SDK' : f.sdkAvailable ? 'Frozen · pixels' : 'Frozen');
@@ -1372,6 +1527,7 @@ function selectionBox(color) {
 // kept, moves beside whatever is selected.
 function annotateDown(e) {
   if (!rt.frozen) return;
+  clearXray();
   const start = axPoint(e);
   if (start.outside) return; // the 3D book's body, or a part turned away
   rt.overlay.setPointerCapture(e.pointerId);
@@ -1598,6 +1754,7 @@ export function closeComposer() {
   rt.draft = null;
   rt.editing = null;
   ui.draft = null;
+  if (!ui.xray) clearXray();
   clearPicks();
   clearLayer('.sel');
 }
@@ -1614,6 +1771,7 @@ export function cancelComposer() {
 export function editMark(i) {
   const mark = rt.frozen?.marks[i];
   if (!mark?.id) return;
+  clearXray();
   if (ui.draft) closeComposer();
   clearLayer('.hl, .hl-label');
   rt.hover = null;
@@ -1625,6 +1783,12 @@ export function editMark(i) {
   });
   rt.editing = mark;
   openComposer();
+  if (mark.measurements) {
+    ui.xrayLevel = mark.measurements.level || 'elements';
+    rt.draft.measurements = mark.measurements;
+    ui.measurement = mark.measurements;
+    renderXray();
+  }
 }
 
 /**
@@ -1686,6 +1850,8 @@ export async function submitComposer(comment) {
     fc.strokeRect((b.x - out) * scale, (b.y - out) * scale, (b.width + out * 2) * scale, (b.height + out * 2) * scale);
   }
 
+  if (draft.measurements) drawMeasurements(fc, draft.measurements, scale);
+
   // Close-up with some context around the box.
   const pad = 16;
   const cx = Math.max(0, (r.x - pad) * scale);
@@ -1693,12 +1859,13 @@ export async function submitComposer(comment) {
   const cw = Math.min(img.width - cx, (r.width + pad * 2) * scale);
   const ch = Math.min(img.height - cy, (r.height + pad * 2) * scale);
   const crop = new OffscreenCanvas(Math.max(1, cw), Math.max(1, ch));
-  crop.getContext('2d').drawImage(img, cx, cy, cw, ch, 0, 0, cw, ch);
+  crop.getContext('2d').drawImage(draft.measurements ? full : img, cx, cy, cw, ch, 0, 0, cw, ch);
   // Screenshots go to the agent upright, as the interface was showing.
   const degrees = f.turned ? uprightDegrees(f.turned) : 0;
 
   const body = {
     udid: ui.udid,
+    measurements: draft.measurements,
     comment: reviewComment(f, comment),
     kind: draft.kind,
     label: draft.label,
@@ -1729,7 +1896,7 @@ export async function submitComposer(comment) {
     mark.el.textContent = f.marks.length;
     floatLayer().append(mark.el);
   }
-  Object.assign(mark, { id: saved?.id, rect: r, picks, comment });
+  Object.assign(mark, { id: saved?.id, rect: r, picks, comment, measurements: draft.measurements });
   mark.el.style.left = `${(r.x / f.points.width) * 100}%`;
   mark.el.style.top = `${(r.y / f.points.height) * 100}%`;
 }
@@ -1856,6 +2023,7 @@ export const is3D = () => wants3D() && !!ui.scene && !!ui.box3d;
 /** Switches between the 3D book and the flat screen in its chrome. */
 export function toggle3D() {
   if (ui.review.state !== 'live') return;
+  if (ui.xray) setMode('interact');
   ui.prefer3d = !ui.prefer3d;
   storage.set('view-3d', ui.prefer3d ? 'on' : 'off');
   syncView();
@@ -1949,6 +2117,7 @@ async function onPanel({ panel, orientation, degrees }) {
     await returnToLive();
     clearReview();
   }
+  if (ui.xray && (ui.chrome?.screen.width !== chrome.screen.width || ui.chrome?.screen.height !== chrome.screen.height || ui.orientation !== orientation)) await setMode('interact');
   ui.chrome = chrome;
   ui.orientation = orientation in ROTATION ? orientation : 'portrait';
   await tick();

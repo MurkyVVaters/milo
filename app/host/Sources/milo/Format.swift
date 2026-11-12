@@ -2,6 +2,10 @@ import Foundation
 
 /// An annotation as Markdown for agents.
 enum Format {
+    private static func measurementNumber(_ value: JSON?) -> String {
+        JS.numberString(JS.round(JS.number(value) * 10) / 10)
+    }
+
     private static func node(_ n: JSON?) -> String {
         let role = JS.string(n?["role"])
         var parts = [JS.dropAX(role)]
@@ -63,6 +67,21 @@ enum Format {
             if scalar == "\n" { comment.append(contentsOf: "\n> ".unicodeScalars) } else { comment.append(scalar) }
         }
         var lines = ["## \(JS.string(a["id"])) [\(JS.string(a["status"]))]", "", "> \(String(comment))", ""]
+        if let m = a["measurements"], !m.isNull {
+            lines.append("### X-Ray measurements (pt)")
+            lines.append("Reported bounds may include invisible touch areas.")
+            let landscape = m["orientation"]?.stringValue?.hasPrefix("landscape") == true
+            let elements = items(m["elements"])
+            for e in elements {
+                let r = e["rect"]
+                lines.append("- \(JS.string(e["id"])) · \(JS.string(e["label"])): \(measurementNumber(r?[landscape ? "height" : "width"])) × \(measurementNumber(r?[landscape ? "width" : "height"])) pt (\(JS.string(e["source"])) bounds)")
+            }
+            for g in items(m["gaps"]) {
+                let axis = (g["axis"]?.stringValue == "x") != landscape ? "horizontal" : "vertical"
+                lines.append("- \(JS.string(g["from"])) → \(JS.string(g["to"])): \(measurementNumber(g["distance"])) pt \(axis) gap")
+            }
+            lines.append("")
+        }
         let screen = a["screen"]
         let `where` = join(items(screen?["headings"]), " › ")
         let device = a["device"]
