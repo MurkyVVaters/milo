@@ -140,6 +140,14 @@ app/scripts/package.sh               # Package a release for Apple Silicon
 
 The host uses private Xcode frameworks, so Xcode updates may require compatibility work. Views without accessibility information, including custom Canvas or Metal content, can be annotated with a box. Source file locations require the SDK.
 
+## Web support proposal
+
+Milo currently supports iOS simulators. The [web support proposal](docs/web-support-proposal.md)
+describes a browser extension that would bring web annotations into the same workspace
+and agent feedback workflow. It covers the shared architecture, browser integration
+tradeoffs, and milestones for validating capture accuracy and preserving iOS behavior.
+Web support is proposed and is not available in the current release.
+
 ## License
 
 [Apache 2.0](LICENSE). Third-party copyright and attribution notices are included in [NOTICE](NOTICE).
